@@ -1,13 +1,12 @@
 #!/bin/ksh
 
-for file in $( ls *.gif *.png ) ; do
+# convert all gif or png files into jpg files
+for file in  *.gif *.png  ; do
 
     if [ -f $file ] ; then
-
-       ext=$( echo $file | sed -e "s/\./ /g" | awk '{ print $NF }' )
-       fileout=$( echo $file | sed -e "s/$ext/jpg/g" | sed -e "s/\./dot/" )
+       ext=${file##*.}
+       fileout=${file%.$ext}.jpg
        convert $file $fileout 
-
     fi
 
 done
