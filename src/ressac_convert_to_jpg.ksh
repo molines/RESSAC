@@ -1,6 +1,6 @@
 #!/bin/ksh
-
 # convert all gif or png files into jpg files
+#  $Id$
 for file in  *.gif *.png  ; do
 
     if [ -f $file ] ; then
