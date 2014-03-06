@@ -55,8 +55,9 @@ blk_list()          {
                     }
 # ====================================================================================================================
    NAM_DIR=NAMELIST
-   OCE_BLK=" namrun namldf namzdf namsbc_core "
-   ICE_BLK=" namicerun namiceini namicedyn namicethd namice_dmp namiceout"
+   OCE_BLK=" namrun namzdf namzdf_tke namtra_adv namtra_ldf namtra_dmp namtra_qsr namzdf_tmx namdyn_adv \
+             namdyn_vor namdyn_ldf nambbl namsbc namsbc_core namsbc_rnf namsbc_ssr namlbc nambfr namtra_dmp namtsd "
+   ICE_BLK=" namicerun namiceini namicedyn namicethd "
    nam_nm="namelist"
 
    single=
@@ -97,11 +98,11 @@ blk_list()          {
      case $nam_typ in
         (ice) 
            for blk in $ICE_BLK ; do
-                getblock $blk $nam_nm  > $NAM_DIR/$blk.txt
+                getblock $blk $nam_nm  > $NAM_DIR/$blk
            done ;;
         (oce)
            for blk in $OCE_BLK ; do
-                getblock $blk $nam_nm   > $NAM_DIR/$blk.txt
+                getblock $blk $nam_nm   > $NAM_DIR/$blk
            done ;;
      esac
    else
@@ -113,6 +114,36 @@ blk_list()          {
 
 
 exit
+   OCE_BLK=" namrun namzdf namzdf_tke namtra_adv namtra_ldf namtra_dmp namtra_qsr namzdf_tmx namdyn_adv namdyn_vor namdyn_ldf nambbl namsbc namsbc_core namsbc_rnf namsbc_ssr namlbc nambfr namtra_dmp namtsd "
+   ICE_BLK=" namicerun namicedyn namicethd "
+Numerics.tex:\namdisplay{namzdf_tke}
+Numerics.tex:\namdisplay{namtra_adv}
+Numerics.tex:\namdisplay{namtra_ldf}
+Numerics.tex:\namdisplay{namdyn_adv}
+Numerics.tex:\namdisplay{namdyn_vor}
+Numerics.tex:\namdisplay{namdyn_ldf}
+Numerics.tex:\namdisplay{nambbl}
+Numerics.tex:\namdisplay{namsbc}
+Numerics.tex:\namdisplay{namsbc_core}
+Numerics.tex:\namdisplay{namtra_qsr}
+Numerics.tex:\namdisplay{namsbc_rnf}
+Numerics.tex:\namdisplay{namsbc_ssr}
+Numerics.tex:\namdisplay{namlbc}
+Numerics.tex:\namdisplay{nambfr}
+Numerics.tex:\namdisplay{namtra_dmp}
+Numerics.tex:\namdisplay{namtsd}
+Numerics.tex:\namdisplay{namicedyn}
+Numerics.tex:\namdisplay{namicethd}
+
+nam_asminc nam_diaharm nam_tide namagrif nambbc nambbl nambdy nambdy_dta nambdy_tide nambfr namcla
+namctl namdct namdom namdyn_adv namdyn_hpg namdyn_ldf namdyn_nept namdyn_vor nameos namflo
+namhsb namlbc nammpp namnc4 namobc namobs namptr namrun namsbc namsbc_alb
+namsbc_ana namsbc_apr namsbc_clio namsbc_core namsbc_cpl namsbc_flx namsbc_mfs namsbc_rnf namsbc_ssr namsbc_wave
+namsol namtra_adv namtra_dmp namtra_ldf namtra_qsr namtrd namtsd namzdf namzdf_ddm namzdf_gls
+namzdf_kpp namzdf_ric namzdf_tke namzdf_tmx namzgr namzgr_sco
+
+
+
 &namicerun     !   Share parameters for dynamics/advection/thermo
 &namiceini     !   ice initialisation
 &namicedyn     !   ice dynamic

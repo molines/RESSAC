@@ -66,11 +66,11 @@ else
 fi
 
 mkdir -p $REPORT_DIR/INPUT_DATA
-mkdir -p $REPORT_DIR/Texfiles/Namelist
-mkdir -p $REPORT_DIR/Texfiles/Figures
-mkdir -p $REPORT_DIR/Texfiles/Biblio
+mkdir -p $REPORT_DIR/TexFiles/Namelist
+mkdir -p $REPORT_DIR/TexFiles/Figures
+mkdir -p $REPORT_DIR/TexFiles/Biblio
 
-cp $RESSAC_ROOT/Texfiles/ametsoc.bst $REPORT_DIR/Texfiles
+cp $RESSAC_ROOT/TexFiles/ametsoc.bst $REPORT_DIR/TexFiles
 
 echo "===================================="
 echo "*   $REPORT_DIR has been installed *"
