@@ -6,7 +6,7 @@ report:
 	latex  <CONFIG_CASE>.tex
 
 pdf:
-	pdflatex Report_<CONFIG_CASE>.tex
+	pdflatex <CONFIG_CASE>_report.tex
 clean:
 	\rm -f *~ *.log *.aux *.dvi *.out
 	cd TexFiles ; \rm -f *~ *.log *.aux *.dvi *.out

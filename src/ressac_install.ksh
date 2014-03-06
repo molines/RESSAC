@@ -33,6 +33,16 @@ print_error() {
    usage
               }
 
+# replace <JOKERS> by their value
+filter()      {
+   file=$1
+   cat $file | sed -e "s/<CONFIG_CASE>/$CONFIG_CASE/g"  \
+                   -e "s/<CONFIG>/$CONFIG/g"            \
+                   -e "s/<CASE>/$CASE/g" > ztmp
+   mv ztmp $file
+              }
+
+
 # ------------------------------------------------------------------------------------------------
 force=0
 if [ $# = 0 ] ; then usage ; fi
@@ -60,7 +70,7 @@ fi
 REPORT_DIR=$RESSAC_WORKDIR/REPORT_${CONFIG_CASE}
 
 if [ -d $REPORT_DIR  -a $force == 0  ] ; then
-  print_error " $REPORT_DIR already exist. Use -f option if you want to overwrite "
+  print_error " $REPORT_DIR already exist. Use -f option if you want to overwrite\n    !!Tex file will be overwritten !! "
 else
   mkdir -p $REPORT_DIR
 fi
@@ -70,7 +80,21 @@ mkdir -p $REPORT_DIR/TexFiles/Namelist
 mkdir -p $REPORT_DIR/TexFiles/Figures
 mkdir -p $REPORT_DIR/TexFiles/Biblio
 
-cp $RESSAC_ROOT/TexFiles/ametsoc.bst $REPORT_DIR/TexFiles
+cp $RESSAC_ROOT/TexFiles/ametsoc.bst $RESSAC_ROOT/TexFiles/*.tex  $REPORT_DIR/TexFiles
+cp $RESSAC_ROOT/Report_template.tex  $REPORT_DIR/${CONFIG_CASE}_report.tex
+cp $RESSAC_ROOT/Makefile.tmpl $REPORT_DIR/Makefile
+
+# customize copied files
+ cd $REPORT_DIR/
+ CONFIG=${CONFIG_CASE%-*}
+ CASE=${CONFIG_CASE#*-}
+
+ filter Makefile
+ filter ${CONFIG_CASE}_report.tex
+ cd TexFiles
+ for f in *.tex ; do
+    filter $f
+ done
 
 echo "===================================="
 echo "*   $REPORT_DIR has been installed *"
