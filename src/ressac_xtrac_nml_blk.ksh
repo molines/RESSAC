@@ -15,7 +15,8 @@ usage()             {
         echo "     [-s ] : show the predefined list of namelist block to extract"
         echo "     [-l ] : list the namelist block name in input namelist"
         echo "     [-b block_name] : single extraction of block_name"
-        echo "     [-n namlist_name] : name of the namelist to wirk with"
+        echo "     [-n namlist_name] : name of the namelist to work with. [namelist ]"
+        echo "     [-d output dir] : name of the directory for output. [../TexFiles/Namelist]"
         exit 0
                     }
 # ---
@@ -54,7 +55,7 @@ blk_list()          {
      fi
                     }
 # ====================================================================================================================
-   NAM_DIR=NAMELIST
+   NAM_DIR=../TexFiles/Namelist
    OCE_BLK=" namrun namzdf namzdf_tke namtra_adv namtra_ldf namtra_dmp namtra_qsr namzdf_tmx namdyn_adv \
              namdyn_vor namdyn_ldf nambbl namsbc namsbc_core namsbc_rnf namsbc_ssr namlbc nambfr namtra_dmp namtsd "
    ICE_BLK=" namicerun namiceini namicedyn namicethd "
@@ -63,13 +64,14 @@ blk_list()          {
    single=
    lst_blk=
 
-   while  getopts :hslb:n: V  ; do
+   while  getopts :hslb:n:d: V  ; do
    case $V in
      (h) usage ;;
      (s) list_predefined ;;
      (b) blk_nm=${OPTARG} ; single=1 ;;
      (l) lst_blk=1 ;;
      (n) nam_nm=${OPTARG} ;;
+     (d) NAM_DIR=${OPTARG} ;;
      (:)  echo ${b_n}" : -"${OPTARG}" option : missing value" 1>&2;
         exit 2;;
      (\?) echo ${b_n}" : -"${OPTARG}" option : not supported" 1>&2;
@@ -104,6 +106,8 @@ blk_list()          {
            for blk in $OCE_BLK ; do
                 getblock $blk $nam_nm   > $NAM_DIR/$blk
            done ;;
+        (top)
+          echo namelist_top not supported yet !
      esac
    else
       echo missing namelist file named $nam_nm
@@ -111,42 +115,3 @@ blk_list()          {
    fi
 
 # 
-
-
-exit
-   OCE_BLK=" namrun namzdf namzdf_tke namtra_adv namtra_ldf namtra_dmp namtra_qsr namzdf_tmx namdyn_adv namdyn_vor namdyn_ldf nambbl namsbc namsbc_core namsbc_rnf namsbc_ssr namlbc nambfr namtra_dmp namtsd "
-   ICE_BLK=" namicerun namicedyn namicethd "
-Numerics.tex:\namdisplay{namzdf_tke}
-Numerics.tex:\namdisplay{namtra_adv}
-Numerics.tex:\namdisplay{namtra_ldf}
-Numerics.tex:\namdisplay{namdyn_adv}
-Numerics.tex:\namdisplay{namdyn_vor}
-Numerics.tex:\namdisplay{namdyn_ldf}
-Numerics.tex:\namdisplay{nambbl}
-Numerics.tex:\namdisplay{namsbc}
-Numerics.tex:\namdisplay{namsbc_core}
-Numerics.tex:\namdisplay{namtra_qsr}
-Numerics.tex:\namdisplay{namsbc_rnf}
-Numerics.tex:\namdisplay{namsbc_ssr}
-Numerics.tex:\namdisplay{namlbc}
-Numerics.tex:\namdisplay{nambfr}
-Numerics.tex:\namdisplay{namtra_dmp}
-Numerics.tex:\namdisplay{namtsd}
-Numerics.tex:\namdisplay{namicedyn}
-Numerics.tex:\namdisplay{namicethd}
-
-nam_asminc nam_diaharm nam_tide namagrif nambbc nambbl nambdy nambdy_dta nambdy_tide nambfr namcla
-namctl namdct namdom namdyn_adv namdyn_hpg namdyn_ldf namdyn_nept namdyn_vor nameos namflo
-namhsb namlbc nammpp namnc4 namobc namobs namptr namrun namsbc namsbc_alb
-namsbc_ana namsbc_apr namsbc_clio namsbc_core namsbc_cpl namsbc_flx namsbc_mfs namsbc_rnf namsbc_ssr namsbc_wave
-namsol namtra_adv namtra_dmp namtra_ldf namtra_qsr namtrd namtsd namzdf namzdf_ddm namzdf_gls
-namzdf_kpp namzdf_ric namzdf_tke namzdf_tmx namzgr namzgr_sco
-
-
-
-&namicerun     !   Share parameters for dynamics/advection/thermo
-&namiceini     !   ice initialisation
-&namicedyn     !   ice dynamic
-&namicethd     !   ice thermodynamic
-&namice_dmp    !   damping of sea ice alone open boundaries
-&namiceout     !   parameters for outputs

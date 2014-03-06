@@ -99,6 +99,7 @@ key_atl4                  Define ATL4 configuration
 key_bdy                   Use BDY open boundaries scheme
 key_c1d                   Use 1D nemo
 key_cice                  Use CICE as ice model
+key_cfc                   Use CFC passive tracer option with TOP
 key_coupled               Use nemo in COUPLED mode
 key_cpl_carbon_cycle      Use nemo with CouPLed CARBON CYCLE
 key_degrad                Use coarsening or superparameterization
@@ -152,6 +153,7 @@ key_orca_r12              Define ORCA12 configuration
 key_orca_r2               Define ORCA2 configuration
 key_orca_r4               Define ORCA4 configuration
 key_periant05             Define PERIANT05 configuration
+key_pisces                Use PISCES biogeophysical model with TOP
 key_pomme_r025            Define POMME025 configuration
 key_tide                  Use tidal forcing 
 key_top                   Use TOP model for passive tracers

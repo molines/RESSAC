@@ -13,6 +13,7 @@ usage() {
       echo "   Options:"
       echo "       [ -h ] : print this help message "
       echo "       [ -f ] : force creation even if the directory already exists."
+      echo "                In this case, old directory will be renamed."
       echo " "
       echo "   Remarks:"
       echo "        1. Environment variable RESSAC_ROOT must be set to a directory where the "
@@ -70,8 +71,15 @@ fi
 REPORT_DIR=$RESSAC_WORKDIR/REPORT_${CONFIG_CASE}
 
 if [ -d $REPORT_DIR  -a $force == 0  ] ; then
-  print_error " $REPORT_DIR already exist. Use -f option if you want to overwrite\n    !!Tex file will be overwritten !! "
+  print_error " $REPORT_DIR already exist. Use -f option if you want to overwrite. (Old will be renamed.)"
 else
+  if [ -d $REPORT_DIR ] ; then 
+    cd $REPORT_DIR 
+    echo "  Directory renamed before creation of a new one with same name" > README_rename
+    echo $(date)  >> README_rename
+    cd ../
+    mv  $REPORT_DIR ${REPORT_DIR}.$$
+  fi
   mkdir -p $REPORT_DIR
 fi
 
@@ -109,9 +117,6 @@ echo "      namelist_ice"
 echo "      includefile.ksh"
 echo "      journal.txt [ optional ]"
 echo "      config-case-MONITOR/*nc  [ optional ]"
+echo "      install_history"
 echo "  ---"
-
-    
-  
-
 
