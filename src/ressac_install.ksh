@@ -84,6 +84,7 @@ echo "      namelist_oce"
 echo "      namelist_ice"
 echo "      includefile.ksh"
 echo "      journal.txt [ optional ]"
+echo "      config-case-MONITOR/*nc  [ optional ]"
 echo "  ---"
 
     
