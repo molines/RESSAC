@@ -1,0 +1,111 @@
+\section{Model configuration}
+
+\subsection{Bathymetry}
+
+The bathymetry used for this simulation (\textit{bathymetry\_ORCA12\_V3.3.nc}) is a merge of etopo1 (1') 
+for the deep ocean and gebco08 (30'') for shallow areas (+ plug base10 (30'') on the European coast). 
+Then coast line and some hand modifications were applied \cite{bathy_v3.2_orca12}. \\
+
+This V3.3 bathymetry file is the same as V3.2 (described in \cite{bathy_v3.2_orca12}) except Amery Ice Shelf was removed as it was only one grid point wide in ORCA12 configuration. 
+Figure \ref{bathyglob} shows the location of Amery Ice Shelf and figure \ref{amery} shows a zoom of v3.2 and v3.3 bathymetry over this region.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=15cm]{FIGURES/bathyglob.eps}
+\caption{Global ORCA12 bathymetry with localisation of Amery Ice Shelf.}
+\label{bathyglob}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=15cm]{FIGURES/amery.eps}
+\caption{Bathymetry v3.2 and v3.3 in the region of Amery Ice Shelf.}
+\label{amery}
+\end{center}
+\end{figure}
+
+\textcolor{blue}{The minimum depth in the model was set to 14.3 meters (j'arrive pas a retrouver les 9m de JM ?)} (3 vertical levels with partial step condition\footnote{4 w-level=3 t-level of 
+the model whose third has a minimum depth of 20\% (partial step) : e3t(1)+e3t(2)+0.2*e3t(3)}). \\
+
+We remove closed seas and lakes.
+
+\scriptsize
+\begin{verbatim}
+!-----------------------------------------------------------------------
+&namdom        !   space and time domain (bathymetry, mesh, timestep)
+!-----------------------------------------------------------------------
+   nn_bathy    =    1      !  compute (=0) or read (=1) the bathymetry file
+   nn_closea   =    0      !  remove (=0) or keep (=1) closed seas and lakes (ORCA)
+   nn_msh      =    6      !  create (/=0) a mesh file(s) or not (=0)
+                           !  if not 0 can be in [1 - 6 ] for drakkar usually 6
+   rn_hmin     =   -3.     !  min depth of the ocean (>0) or min number of ocean level (<0)
+   rn_e3zps_min=    25.    !  partial step thickness is set larger than the minimum of
+   rn_e3zps_rat=    0.2    !  rn_e3zps_min and rn_e3zps_rat*e3t, with 0<rn_e3zps_rat<1
+                           !
+   rn_rdt      =   72.     !  time step for the dynamics (and tracer if nn_acc=0)
+   nn_baro     =   60      !  number of barotropic time step            ("key_dynspg_ts")
+   rn_atfp     =    0.1    !  asselin time filter parameter
+   nn_acc      =    0      !  acceleration of convergence : =1      used, rdt < rdttra(k)
+                           !                          =0, not used, rdt = rdttra
+   rn_rdtmin   =  72.      !  minimum time step on tracers (used if nn_acc=1)
+   rn_rdtmax   =  72.      !  maximum time step on tracers (used if nn_acc=1)
+   rn_rdth     =  72.      !  depth variation of tracer time step  (used if nn_acc=1)
+/
+\end{verbatim}
+
+\normalsize
+
+\subsection{Horizontal grid}
+
+The horizontal grid is the standard ORCA12 tri-polar grid (4322 x 3059 grid points). 
+The 1/12\degres \enspace resolution corresponds to the equator (10km). 
+Resolution increases poleward: 5km at 60\degres, 3.5km at 75\degres \enspace 
+(the grid size is scaled by the cosine of the latitude, except in the Arctic, of course).
+
+\subsection{Vertical grid}
+
+The vertical grid has 46 levels, with a resolution of 6m near the surface and 250m in the deep ocean.
+
+\subsection{Initial conditions}
+
+\subsubsection{Ocean}
+
+The simulation started at rest, on January $1^{st}$ 1979, with initial monthly climatological temperatures and salinities. 
+The used climatology was a merge of the Levitus 1998 climatology, patched with PHC2 for the Arctic regions and Medatlas for the Mediterranean Sea.
+
+\subsubsection{Ice}
+
+Initial condition for ice (ice concentration, ice thickness) was inferred from the NSDIC Bootstrap products for Januar 1989 (same as ORCA025.L75-MJM95 and ORCA025.L75-GRD100).\\
+
+\textcolor{blue}{Question: I don't have this Ice initialization file on a ORCA12 grid ! Decision (Bernard): Non en fait on veut initialiser \`a partir d'un mois de janvier type de glace de ORCA12.L46-MAL95 ! 
+Il faut en choisir un \`a partir duquel la glace et ses oscillations \'et\'e/hiver sont bien stabilis\'ees !: A FAIRE: Regardez le monitoring ORCA12.L46-MAL95 et dites moi quel 
+mois de janvier vous voulez pour initialiser la glace de ce nouveau run ORCA12.}
+
+\scriptsize
+\begin{verbatim}
+!-----------------------------------------------------------------------
+&namiceini     !   ice initialisation
+!-----------------------------------------------------------------------
+   ln_limini   = .true.   !  read the initial state in 'Ice_initialization.nc' (T) or not (F)
+   ttest       =  2.0      !  threshold water temperature for initial sea ice
+   hninn       =  0.5      !  initial snow thickness in the north
+   hginn       =  3.0      !  initial ice  thickness in the north
+   alinn       =  0.05     !  initial leads area     in the north
+   hnins       =  0.1      !  same  three parameter  in the south
+   hgins       =  1.0      !        "                 "     south
+   alins       =  0.1      !        "                 "     south
+/
+\end{verbatim}
+
+\normalsize
+
+\subsection{Miscellaneous}
+
+We used a 72 sec time step duration for the first 5 days (1-5 jan 1979), and then increased progressively 
+to 144 sec for days 6-15, 300 sec for days 16-20 and 360 sec after. \textcolor{blue}{en fait Markus arrive \`a tourner avec 540sec, on essaiera donc d'aller a cette valeur, 
+il faudra donc diminuer nn\_fsbc pour garder 5 pas de temps entre chaque forcage.}
+Robert-Asselin filter parameter is 0.1 along the entire duration of the run.
+%Robert-Asselin filter parameter was increased to 0.2 for the first 10 days to avoid overshoots, and 
+%then reduced to the configuration default value 0.1. \\
+

@@ -1,0 +1,12 @@
+# Makefile for generating report for <CONFIG_CASE>
+# $Id
+# -----------------------------------------------------
+
+report: 
+	latex  <CONFIG_CASE>.tex
+
+pdf:
+	pdflatex Report_<CONFIG_CASE>.tex
+clean:
+	\rm -f *~ *.log *.aux *.dvi *.out
+	cd TexFiles ; \rm -f *~ *.log *.aux *.dvi *.out

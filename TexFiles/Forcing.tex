@@ -1,0 +1,187 @@
+\section{Surface boundary conditions}
+
+The surface boundary conditions are prescribed to the model using the CORE bulk formulation. 
+The run was forced by DFS5.1.1 over the 1979-2010 period. \textcolor{blue}{donner une ref de raphael, donner une breve explication de qu'est ce qui differe entre ERAinterim et DFS5.1.1}. 
+The data set includes 4 turbulent variables (u10, v10, t2, q2) given every 3 hours, 2 radiative fluxes variables (radsw, radlw) and 
+2 fresh water flux variables (total precipitations, snow), all these last variables given as daily averaged. 
+The turbulent variables (u10, v10, t2, q2) and the fresh water flux variables (total precipitations, snow) are time interpolated, 
+contrary to the radiative fluxes variables (radsw, radlw) \textcolor{blue}{vous etes bien d'accord avec ces interpolations (je me souviens avoir foir\'e pour MAL95 sur ce point...) ?}. \\
+
+\textcolor{blue}{Remark: Markus force K003 avec CORE2 et lui n'interpole pas t2 q2 u10 v10 en temps, contrairement a nous..., lui il a t10 q10 et pas t2 q2} \\
+
+\textcolor{blue}{Modification de derni\`ere minute: Bernard veut encore changer le coefficient devant les pr\'ecipitations. Il serait temps de enfin finaliser ce forcage et d\'ecider qu'est ce qu'on y met !} \\
+
+
+We run the simulation twice over the same forcing period 1979-2010: for a total of 32 $\times$ 2 = 64 simulated years. \\
+
+The frequency of surface boundary condition computation (and also the frequency of sea-ice model call) is every 6 timesteps. 
+This value was defined considering that:
+\begin{itemize}
+ \item the timestep duration is 360sec (after stabilization of the model);
+ \item turbulent forcing are given every 3h;
+ \item thus we call sea-ice model and surface boundary condition computation every 36min, i.e. 5 times between each forcing, which is sufficient.
+\end{itemize}
+
+\textcolor{blue}{Remark: Markus has nn\_fsbc=5 with rn\_rdt=540 in its K003 run.} \\
+
+We used ice model LIM2-EVP. \\
+
+We use absolute 10m wind (we don't take into account the surface current in the wind velocity module), except for the ice. \textcolor{blue}{Some results 
+(reported here: \\
+\url{http://www-meom.hmg.inpg.fr/DRAKKAR/WORK_AL/EKE_ABSREL_WIND/}) show that absolute wind associated with 50-level vertical grid results in a 
+stronger EKE at the surface and in the first 100meters, 
+compared to relative wind associated with 46-level vertical grid. Actually we don't know if it is absolute wind or high resolution near surface 
+(or both) which is responsible for that but we decide to use absolute wind for ORCA12.L46-MAL101 simulation.}
+
+%-----------------------------------namsbc--------------------------------------------
+\namdisplay{namsbc}
+\namdisplay{namsbc_core}
+%-------------------------------------------------------------------------------------
+
+\subsection{Radiative flux and precipitation corrections \\}
+
+%The radiative fluxes (both long wave and short wave) and precipitation exhibit unacceptable bias. 
+%Therefore a specific correction has been implemented by \textcolor{blue}{Garric (reference paper ?)} 
+%in order to improve those fluxes and precipitation. For radiative fluxes, a correction factor based on 
+%the comparison between ERA-interim fluxes and satellite fluxes products (GEWEX) is computed. For precipitation, 
+%the correction uses large scale GPCP product. These corrections required some change in the code as described here. 
+%Basically, the idea is to apply a 2D scaling coefficient to the large scale features of the radiative fluxes and precipitation. 
+%Original fields are band-pass filtered to separate large scales and small scales, using a shapiro filter, applied 250 times during 
+%the period 1989-1991 and enhanced to 600 times during the period 1992-2007 (which reduced the performance rate of the model computing by 5\%). 
+%The correction is applied to the large scale and then the small scale is added to produce the radiative fluxes and precipitation for the model. 
+%Finally we applied a scale factor to this radiative flux correction in Arctic and Southern Ocean (solar heat flux: 70\% in the Arctic and 80\% 
+%in the Southern Ocean; long wave heat flux: 110\% in the Arctic and Southern Ocean). For precipitation, we only applied the correction between 
+%30\degres S and 30\degres N, with a buffer zone between 30\degres N/S and 40\degres N/S. No correction is applied northward of 40\degres N 
+%and southward of 40\degres S.\\
+
+\textcolor{blue}{blahblahblah... Raf ???}
+
+\subsection{Light penetration algorithm according to ocean color \\}
+
+In this simulation we use a non-standard parametrization of the penetration of the solar flux in the ocean, 
+modulated by the chlorophyll concentration, deduced from satellite (SeaWIFS ocean color products) ocean color 
+monthly climatology developed by \cite{Lengaigne2007}. In this solar radiation penetration formulation, visible 
+light is split into three wavebands: blue (400-500nm), green (500-600nm), red (600-700nm).\\
+
+We take care to use nn\_chldta=1 (not the same error as in ORCA025.L75-GRD100, ORCA12.L46-MAL95, ORCA025.L75-MJM95 runs...). \\
+
+\textcolor{blue}{Markus a gard\'e nn\_chldta=0 pour K003...} \\
+
+The Chl-a data file on an ORCA12 grid was provided by Sebastien Masson: chlaseawifs\_c1m-99-05\_smooth\_ORCA\_R12.nc. 
+We used kRGB61.txt 61-level RGB bands in the first 10 meters.
+
+%-----------------------------------namtra_qsr--------------------------------------------
+\namdisplay{namtra_qsr}
+%-------------------------------------------------------------------------------------
+
+\subsection{Diurnal Cycle on solar fluxes \\}
+
+We used the parametrization of the diurnal cycle on the solar flux (ln\_dm2dc=.true.), although 
+the ORCA12.L46-MAL101 simulation as only 46-level vertical discretization. We did this choice 
+to be coherent with the corresponding twin ORCA025 simulation which has 75-level vertical grid. \\
+
+
+\subsection{River Run-off \\}
+
+The coastal and river run-off data is based on the file runoff\_obtaz\_rhone\_1m\_ORCA12\_20102008.nc
+\footnote{It is the first ORCA12 simulation computed at LEGI with this runoff file, previous one used the 
+runoff file with Rhone into the Garonne (runoff\_coast1pt\_ant3pt\_isl20\_obtaz\_1m\_ORCA12\_correctAMZ\_200610\_lbclnk.nc).}. \\
+
+There is no specific treatment at rivers mouths. 
+We don't read any information about depth / temperature / salinity for runoff. \\
+
+The novelty is that we decide to take into account the melting of drifting icebergs. 
+We start from the same runoff file used in ORCA025.L75-GRD100. We extract only the 
+iceberg runoff (using BMG tool). 
+We extent\footnote{no interpolation, one grid cell is copied into 9 grid cells} 
+this ORCA025-grid iceberg runoff onto an ORCA12 grid (with chgrid.F90 tool). We compute 
+the total iceberg runoff south of 60S and we remove this value to the Antarctic coastal 
+runoff south of 60S, in order to keep the same total runoff as before. Table 
+\ref{tablerunoff} shows the annual total runoff (global and south of 60S) in initial file, in only-iceberg file, and in final file. 
+Figures \ref{runoffhistglo} and \ref{runoffhistS60} show the global and south of 60S cumulative runoff at each month in initial file, in only iceberg file, and in final runoff file. 
+This final runoff file used in ORCA12.L46-MAL101 simulation is called runoff\_obtaz\_rhone\_1m\_ORCA12\_20102008\_iceberg.nc and is plotted in fig. \ref{runoff2D}. \\
+
+\textcolor{blue}{Et pour la variable socoefr ?} \\
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Moy annuelle (Sv)} & \textbf{initial} & \textbf{iceberg} & \textbf{final} \\
+\hline
+\textbf{Global}            & 1.3147           & 0.0206           & 1.3201         \\
+\textbf{South of 60S}      & 0.0828           & 0.0152           & 0.0828         \\
+\hline
+\end{tabular}
+\label{tablerunoff}
+\caption{Global and South of 60S runoff in initial runoff file (runoff\_obtaz\_rhone\_1m\_ORCA12\_20102008.nc), 
+in only-iceberg runoff (deduced from ORCA025.L75-GRD100 runoff file: runoff\_GIG\_antarcoast\_corrected.nc), 
+and in final runoff file used in ORCA12.L46-MAL101 simulation 
+(runoff\_obtaz\_rhone\_1m\_ORCA12\_20102008\_iceberg.nc).}
+\end{center}
+\end{table}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=15cm]{FIGURES/globalrunoff.eps}
+\caption{Global runoff (in Sv) for each month.}
+\label{runoffhistglo}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=15cm]{FIGURES/S60runoff.eps}
+\caption{South of 60S runoff (in Sv) for each month. We can see that the south of 60S runoff is conserved after adding iceberg runoff.}
+\label{runoffhistS60}
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=15cm]{FIGURES/runoff_obtaz_rhone_1m_ORCA12_20102008_iceberg_annual.eps}
+\caption{Annual mean runoff (Kg/m2/s) in ORCA12.L46-MAL101 simulation.}
+\label{runoff2D}
+\end{center}
+\end{figure}
+
+%-----------------------------------namsbc_rnf--------------------------------------------
+\namdisplay{namsbc_rnf}
+%-------------------------------------------------------------------------------------
+
+\textcolor{blue}{Once we considered patching runoff from MED12 into \\
+runoff\_obtaz\_rhone\_1m\_ORCA12\_20102008.nc. But strong differences 
+between the two files over the Mediterranean Sea (reported here: \\
+\url{http://www-meom.hmg.inpg.fr/DRAKKAR/WORK_AL/RUNOFF_MED/}) prevented us to do that. 
+Contrairement à nous, J. Beuvier place ses runoff \`a l'embouchure des fleuves, et pas \'etal\'e dans l'oc\'ean. De plus il n'a fait aucun tuning particulier pour le m\'elange \`a Gibraltar. 
+Donc nous, qu'est ce qu'on d\'ecide ?}.\\
+
+\textcolor{blue}{Question: ce run off n'est pas à jour du Amery Ice Shelf qu'on a bouch\'e, croyez vous que c'est grave ?... en meme temps 
+je crois qu'il coincide pas avec le mask \`a plein d'autres endroits... je vais essayer d'analyser quels sont les endroits d'incoh\'erence et combien de Sv de runoff ca concerne...} \\
+
+\subsection{SSS restoring strategy \\}
+
+This run uses Sea Surface Salinity restoring toward Levitus, with a time scale of 60 days / 10 meters (considered as rather strong). 
+There is no enhancement of the restoring term in the Mediterranean Sea. \\
+
+\textcolor{blue}{Markus a rn\_deds=-16.44 dans K003, soit 608 days/10m (rappel 10 fois plus faible que nous)} \\
+
+\textcolor{blue}{Decision: we use SSS damping under sea-ice, with the same time scale as for open ocean ? Question: comment fait on avec la namelist pour dire qu'on veut rappeler aussi sous la glace ?} \\
+
+\textcolor{blue}{Question: should we bound erp term and which value for rn\_sssr\_bnd ?} \\
+
+\textcolor{blue}{Question: Which mask near the coast ? I don't have any mask for ORCA12... We want restore near the coast 
+northward of 55-65N, and no restoring near the coast elsewhere... And which rn\_dist ? En fait non, on ne sait pas du tout ce qu'on veut faire pour l'instant. Qui tranche ?} \\
+
+\textcolor{blue}{Question: We decided to keep model SSS filtering before restoring (ln\_sssr\_flt=.true.), 
+but we want an isotropic smoothing. (how to do that with current Shapiro filter ?). Thierry: ``SSS filtering : OK shapiro a condition que (1) on sache quel est son cutoff 
+et que (2) il soit isotrope. Il me semble pertinent d'exprimer cette \'echelle de cutoff sur la grille i,j qui suit un peu la d\'ecroissance poleward du rayon interne (quoiqu'insuffisamment)''. 
+OK, alors on fait quoi avec ce Shapiro ?} \\
+
+\textcolor{blue}{Question: Bernard souhaite un rappel en sel tr\`es fort les 4 premi\`eres ann\'ees, puis on reviendrait (progressivement ou brusquement ?) vers 60 days / 10 meters. 
+C'est \`a dire, quel time scale choisir exactement pour year 1 \`a 4 ?}
+
+%-----------------------------------namsbc_ssr--------------------------------------------
+\namdisplay{namsbc_ssr}
+%-------------------------------------------------------------------------------------
+

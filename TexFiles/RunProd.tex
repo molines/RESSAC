@@ -1,0 +1,96 @@
+\section{Run production}
+
+\subsection{Integration and computing performance}
+
+The run was performed at CINES HPC center in Montpellier, using $\simeq$3000 cores\footnote{\cite{Lecointre_perfNEMO3.4} 
+showed that with some computation tunings the scalability was very good until this value.} of the SGI Altix ICE 8200 cluster (Jade). 
+The $\simeq$3000 cores value has been defined using MPP-PREP tool on ORCA12 v3.3 bathymetry file:
+\begin{verbatim}
+[user@service3] $ ./sort_screen_proc.ksh 2936 3064
+   [...]
+   93    46    49    69       3381  3040  1238  0.77742
+   65    66    69    49       3381  3048  1242  0.77946
+   68    63    66    51       3366  3056  1228  0.77804
+   95    45    48    70       3360  3048  1227  0.77462
+   82    52    55    61       3355  3032  1232  0.76941
+   84    51    54    62       3348  3056  1228  0.77388
+\end{verbatim}
+We don't consider the last three domain decompositions as they have jpni >> jpnj, resulting in a large amount of domains in northfold communicator, 
+and we know it is not optimal\footnote{Actually this assumption was right when ln\_nnogather=.false. and we don't 
+know if it is still the case when avoidind MPI\_Allgather at northfold.}. 
+The domain decomposition used is 68 x 63 cores along x- and y- directions respectively for a total of 3056 computing core (land domain were eliminated). 
+Each core computes 66 x 51 grid points. Figure \ref{decomp} shows the domain decomposition. \\
+
+\textcolor{blue}{Il faudra quand meme tester avant de demarrer si le choix jpni=82, jpnj=52, jpnij=3032 ne serait pas meilleur.}
+
+\scriptsize
+\begin{verbatim}
+!-----------------------------------------------------------------------
+&nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
+!-----------------------------------------------------------------------
+   cn_mpi_send =  'I'      !  mpi send/recieve type   ='S', 'B', or 'I' for standard send,
+                           !  buffer blocking send or immediate non-blocking sends, resp.
+   nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
+   ln_nnogather=  .true.   !  activate code to avoid mpi_allgather use at the northfold
+   jpni        =  68       !  jpni   number of processors following i (set automatically if < 1)
+   jpnj        =  63       !  jpnj   number of processors following j (set automatically if < 1)
+   jpnij       =  3056     !  jpnij  number of local domains (set automatically if < 1)
+/
+\end{verbatim}
+
+\normalsize
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=15cm]{FIGURES/ORCA12-jade-068x063_3056.eps}
+\caption{Domain decomposition used for ORCA12.L46-MAL101 simulation. There 68 x 63 cores for a total of 3056 ocean domains. Each domain has 66 x 51 grid points.}
+\label{decomp}
+\end{center}
+\end{figure}
+
+We decide to use a preconditioned conjugate gradient elliptic solver as \cite{report_sor} showed that computing performance doesn't increase when 
+using successive-over-relaxation solver, even when tuning \textit{rn\_sor} value.
+
+\scriptsize
+\begin{verbatim}
+!-----------------------------------------------------------------------
+&namsol        !   elliptic solver / island / free surface
+!-----------------------------------------------------------------------
+   nn_solv     =      1    !  elliptic solver: =1 preconditioned conjugate gradient (pcg)
+                           !                   =2 successive-over-relaxation (sor)
+   nn_sol_arp  =      0    !  absolute/relative (0/1) precision convergence test
+   rn_eps      =  1.e-6    !  absolute precision of the solver
+   nn_nmin     =    390    !  minimum of iterations for the SOR solver
+   nn_nmax     =  15000    !  maximum of iterations for the SOR solver
+   nn_nmod     =     10    !  frequency of test for the SOR solver
+   rn_resmax   =  1.e-10   !  absolute precision for the SOR solver
+   rn_sor      =  1.973    !  optimal coefficient for SOR solver (to be adjusted with the domain)
+/
+\end{verbatim}
+
+\normalsize
+
+\textcolor{blue}{We decided to add \textit{-fp-model source -fp-model precise} to the default values for code compilation as \cite{Lecointre_perfNEMO3.4} showed that these options 
+increase output consistency and reproductibility without impact on computing performance.} \\
+
+The association of ln\_nnogather=.true. option (avoid MPI\_Allgather at northfold) and the placement strategy implemented 
+(no ''depopulated core condition'' but ``away-neighbour placement'') allowed 
+us to reach computing performance of \textcolor{blue}{XXXXX} CPU hours per simulated year (\textcolor{blue}{XX} elapsed hours per simulated year). 
+The total CPU cost of this 64-year simulation is \textcolor{blue}{XXXXXXX} CPU hours. 
+More details about performance computing strategy can be found in \cite{Lecointre2011,Lecointre_perfNEMO3.4} and on demand 
+at \href{mailto:albanne.lecointre@legi.grenoble-inp.fr}{albanne.lecointre@legi.grenoble-inp.fr}. 
+We performed 6-month runs with a \textcolor{blue}{15h00 walltime}, with a restart file frequency 
+of 6 months\footnote{Finally, only 1-year restart files were archived.}.
+
+\textcolor{red}{\textbf{A partir d'ici il n'y a plus rien d'int\'eressant \`a lire actuellement pour la d\'efinition du run...}}
+
+\subsection{Model output}
+
+Model output is done as 5-days averages. Then monthly and annual means are computed in the post processing. 
+The output size represents 1.9Tb per year (for 5-day + monthly and annual means). 
+We also computed climatology over the periods XXXX-XXXX...
+
+\subsection{Journal of the run}
+
+A detailed journal of the run production is available on demand at \href{mailto:albanne.lecointre@legi.grenoble-inp.fr}{albanne.lecointre@legi.grenoble-inp.fr}.
+

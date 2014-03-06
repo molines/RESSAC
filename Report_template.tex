@@ -1,0 +1,99 @@
+\title{Report on <CONFIG_CASE>  experiment}
+\author{
+        Albanne Lecointre, Jean-Marc Molines, Bernard Barnier \\
+        MEOM - LGGE - CNRS \\
+        LGGE-DRA-\todayiso
+}
+\date{\today}
+
+\documentclass[12pt]{article}
+
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{float}
+\usepackage[french,english]{babel}
+\usepackage{verbatim}
+\usepackage[T1]{fontenc}
+\usepackage[top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
+\usepackage{textcomp}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{datetime}
+
+\renewcommand{\dateseparator}{-}
+\newcommand{\todayiso}{\the\year \dateseparator \twodigit\month \dateseparator \twodigit\day}
+\newcommand{\figwidth}{\linewidth}
+
+% Taken from the NEMO_book factory ...
+%%%% namelist
+\usepackage{alltt}      %%  alltt for namelist
+\usepackage{verbatim}   %%  alltt for namelist
+% namelists
+\newcommand{\namdisplay} [1] {
+\begin{alltt}
+%  NEMO uses \tiny here but very small
+{\scriptsize \verbatiminput{./TexFiles/Namelist/#1}}
+\end{alltt}
+  \vspace{-10pt}
+}
+
+\begin{document}
+
+\maketitle
+
+\textcolor{red}{\textbf{This report is a working version, please do not circulate out of the redaction comitee  ...}} \\
+
+% ================================================================
+% INTRODUCTION
+% ================================================================
+
+\input{./TexFiles/Introduction}
+
+% ================================================================
+% NUMERICAL CODE
+% ================================================================
+
+\input{./TexFiles/Numerics}
+
+% ================================================================
+% MODEL CONFIGURATION
+% ================================================================
+
+\input{./TexFiles/ModelConfig}
+
+% ================================================================
+% FORCING OF THE MODEL
+% ================================================================
+
+\input{./TexFiles/Forcing}
+
+% ================================================================
+% RUN PRODUCTION
+% ================================================================
+
+\input{./TexFiles/RunProd}
+
+% ================================================================
+% VALIDATION
+% ================================================================
+
+\input{./TexFiles/Validation}
+
+% ================================================================
+% Acknowledgement
+% ================================================================
+
+\input{./TexFiles/Acknowledgement}
+
+% ================================================================
+% Acknowledgement
+% ================================================================
+
+\input{./TexFiles/Biblio}
+
+\end{document}
+
+%---------------------------------------------------------------------------------------------------
+
+
+
