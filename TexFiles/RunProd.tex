@@ -23,22 +23,9 @@ Each core computes 66 x 51 grid points. Figure \ref{decomp} shows the domain dec
 
 \textcolor{blue}{Il faudra quand meme tester avant de demarrer si le choix jpni=82, jpnj=52, jpnij=3032 ne serait pas meilleur.}
 
-\scriptsize
-\begin{verbatim}
-!-----------------------------------------------------------------------
-&nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
-!-----------------------------------------------------------------------
-   cn_mpi_send =  'I'      !  mpi send/recieve type   ='S', 'B', or 'I' for standard send,
-                           !  buffer blocking send or immediate non-blocking sends, resp.
-   nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
-   ln_nnogather=  .true.   !  activate code to avoid mpi_allgather use at the northfold
-   jpni        =  68       !  jpni   number of processors following i (set automatically if < 1)
-   jpnj        =  63       !  jpnj   number of processors following j (set automatically if < 1)
-   jpnij       =  3056     !  jpnij  number of local domains (set automatically if < 1)
-/
-\end{verbatim}
-
-\normalsize
+%-----------------------------------nammpp--------------------------------------------
+\namdisplay{nammpp}
+%-------------------------------------------------------------------------------------
 
 \begin{figure}[H]
 \begin{center}
@@ -51,24 +38,9 @@ Each core computes 66 x 51 grid points. Figure \ref{decomp} shows the domain dec
 We decide to use a preconditioned conjugate gradient elliptic solver as \cite{report_sor} showed that computing performance doesn't increase when 
 using successive-over-relaxation solver, even when tuning \textit{rn\_sor} value.
 
-\scriptsize
-\begin{verbatim}
-!-----------------------------------------------------------------------
-&namsol        !   elliptic solver / island / free surface
-!-----------------------------------------------------------------------
-   nn_solv     =      1    !  elliptic solver: =1 preconditioned conjugate gradient (pcg)
-                           !                   =2 successive-over-relaxation (sor)
-   nn_sol_arp  =      0    !  absolute/relative (0/1) precision convergence test
-   rn_eps      =  1.e-6    !  absolute precision of the solver
-   nn_nmin     =    390    !  minimum of iterations for the SOR solver
-   nn_nmax     =  15000    !  maximum of iterations for the SOR solver
-   nn_nmod     =     10    !  frequency of test for the SOR solver
-   rn_resmax   =  1.e-10   !  absolute precision for the SOR solver
-   rn_sor      =  1.973    !  optimal coefficient for SOR solver (to be adjusted with the domain)
-/
-\end{verbatim}
-
-\normalsize
+%-----------------------------------namsol--------------------------------------------
+\namdisplay{namsol}
+%-------------------------------------------------------------------------------------
 
 \textcolor{blue}{We decided to add \textit{-fp-model source -fp-model precise} to the default values for code compilation as \cite{Lecointre_perfNEMO3.4} showed that these options 
 increase output consistency and reproductibility without impact on computing performance.} \\
