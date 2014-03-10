@@ -81,7 +81,21 @@ pl_shlat() {
 # ---
 
 pl_bfr()   {
-    echo bfr
+    echo bfr_Bering being plotted
+    bering="-180 -160 60 75 "
+    file=$(get_includefile BFR )
+    ln -s  $IDIR/$bathy ./$bathy
+    ln -s $IDIR/$file ./$file
+echo  $CHART -hi -proj ME -clrdata $file -clrvar bfr_coef -clrmet 1 -p lowwhite.pal -o ${CONFIG_CASEnoDOT}_bfr_bering.cgm -zoom $bering -360
+    $CHART -hi -proj ME -clrdata $file -clrvar bfr_coef -clrmet 1 -p lowwhite.pal -o ${CONFIG_CASEnoDOT}_bfr_bering.cgm -zoom $bering -360
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_bfr_bering ; mv ${CONFIG_CASEnoDOT}_bfr_bering.jpg ../TexFiles/Figures/
+                                                mv ${CONFIG_CASEnoDOT}_bfr_bering.eps ../TexFiles/Figures/
+
+    echo bfr_Torres being plotted
+   torres=" 135 159 -15 -5 "
+    $CHART -hi -proj ME   -clrdata $file -clrvar bfr_coef -clrmet 1 -p lowwhite.pal -o ${CONFIG_CASEnoDOT}_bfr_torres.cgm -zoom $torres -360
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_bfr_torres ; mv ${CONFIG_CASEnoDOT}_bfr_torres.jpg ../TexFiles/Figures/
+                                                mv ${CONFIG_CASEnoDOT}_bfr_torres.eps ../TexFiles/Figures/
            }
 
 # ---
