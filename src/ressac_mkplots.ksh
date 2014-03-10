@@ -73,9 +73,9 @@ pl_shlat() {
     ln -s  $IDIR/$bathy ./$bathy
     ln -s $IDIR/$file ./$file
     $CHART  -pixel -clrdata $file -clrvar $var -clrmet 1 -p lowwhite.pal -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
-            -cntilt ' ' -o ${CONFIG_CASE}_shlat.cgm
-    cgm2jpgeps ${CONFIG_CASE}_shlat ; mv ${CONFIG_CASE}_shlat.jpg ../TexFiles/Figures/
-                                      mv ${CONFIG_CASE}_shlat.eps ../TexFiles/Figures/
+            -cntilt ' ' -o ${CONFIG_CASEnoDOT}_shlat.cgm
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_shlat ; mv ${CONFIG_CASEnoDOT}_shlat.jpg ../TexFiles/Figures/
+                                           mv ${CONFIG_CASEnoDOT}_shlat.eps ../TexFiles/Figures/
     rm ztmp.sun
            }
 # ---
@@ -121,6 +121,10 @@ fi
 CONFIG=${CONFIG_CASE%-*}
 CASE=${CONFIG_CASE#*-}
 IDIR=$IDIR_ROOT/${CONFIG}/${CONFIG}-I
+# graph in latex complains if there is more than one dot in file name ...
+CONFIGnoDOT=$(echo $CONFIG | tr -d '.')
+CASEnoDOT=$(echo $CASE | tr -d '.')
+CONFIG_CASEnoDOT=${CONFIGnoDOT}-${CASEnoDOT}
 
 if [ $plot_all ] ; then
    pl_shlat ; pl_bfr ; pl_rnf 
