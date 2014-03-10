@@ -92,16 +92,27 @@ cp $RESSAC_ROOT/TexFiles/ametsoc.bst $RESSAC_ROOT/TexFiles/*.tex  $REPORT_DIR/Te
 cp $RESSAC_ROOT/Report_template.tex  $REPORT_DIR/${CONFIG_CASE}_report.tex
 cp $RESSAC_ROOT/Makefile.tmpl $REPORT_DIR/Makefile
 
+cp $RESSAC_ROOT/TexFiles/Figures/*eps $REPORT_DIR/TexFiles/Figures/
+cp $RESSAC_ROOT/TexFiles/Figures/*jpg $REPORT_DIR/TexFiles/Figures/
+
 # customize copied files
  cd $REPORT_DIR/
- CONFIG=${CONFIG_CASE%-*}
- CASE=${CONFIG_CASE#*-}
+ CONFIG=${CONFIG_CASE%-*}  ; CONFIGnoDOT=$(echo $CONFIG | tr -d '.')
+ CASE=${CONFIG_CASE#*-}    ; CASEnoDOT=$(echo $CASE | tr -d '.')
+                             CONFIG_CASEnoDOT=${CONFIGnoDOT}-${CASEnoDOT}
 
  filter Makefile
  filter ${CONFIG_CASE}_report.tex
  cd TexFiles
  for f in *.tex ; do
     filter $f
+ done
+
+ cd Figures
+ for typ in shlat2d bfr_bering bfr_torres ; do
+   for ext in eps jpg ; do
+     ln -sf workInProgress.jpg ${CONFIG_CASEnoDOT}_$typ.$ext
+   done
  done
 
 echo "===================================="
