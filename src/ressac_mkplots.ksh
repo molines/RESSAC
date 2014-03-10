@@ -1,8 +1,10 @@
 #!/bin/ksh
 # this script is used to produce basic plots for the report
 # should be launched from INPUT_DATA dir of a RESSAC working directory
+# $Id$
 
 IDIR_ROOT=/fsnet/data/meom/MODEL_SET
+CHART=chart
 
 usage() {
       echo " "
@@ -22,7 +24,7 @@ usage() {
       echo "   Options:"
       echo "      -h : Print this help message"
       echo "      -l : Print the list of available plots."
-      echo "      -i IDIR : Give the path name of the CONFIG/CONFIG_CASE-I directory"
+      echo "      -i IDIR_root : Give the path name of the CONFIG/CONFIG_CASE-I directory"
       echo "           Replace the default value which is $IDIR_ROOT"
       echo "      -c config-case : force a config-case name. It is normay infered from the"
       echo "           base name of the actual directory"
@@ -41,8 +43,40 @@ lstplot () {
            }
 # ---
 
+cgm2jpgeps()  {
+    ctrans -res 1024x1024 -d sun $1.cgm > ztmp.sun
+    convert -quality 100 ztmp.sun $1.jpg
+    convert -quality 100 ztmp.sun $1.eps
+           }
+# ---
+
+get_data_file() { 
+    nam=../TexFiles/Namelist/$2
+    file=$(grep $1 $nam | grep -v '^!' | awk -F\' '{print $2}' ).nc
+    var=$(grep $1 $nam | grep -v '^!'  | awk -F\' '{print $4}' )
+    echo $file $var
+                }
+
+get_includefile() {
+    nam=./${CONFIG_CASE}_includefile.ksh
+    ztmp=$( grep $1 $nam | grep -v '^#' | awk '{ print $1}' )
+    echo ${ztmp#*=}
+                  }
+
 pl_shlat() {
-    echo shlat
+    echo shlat being plotted
+    ztmp="$(get_data_file sn_shlat2d namlbc )"
+    file=$( echo $ztmp | awk '{print $1}' )
+    var=$( echo $ztmp  | awk '{print $2}' )
+
+    bathy=$(get_includefile BATFILE_METER ) 
+    ln -s  $IDIR/$bathy ./$bathy
+    ln -s $IDIR/$file ./$file
+    $CHART  -pixel -clrdata $file -clrvar $var -clrmet 1 -p lowwhite.pal -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
+            -cntilt ' ' -o ${CONFIG_CASE}_shlat.cgm
+    cgm2jpgeps ${CONFIG_CASE}_shlat ; mv ${CONFIG_CASE}_shlat.jpg ../TexFiles/Figures/
+                                      mv ${CONFIG_CASE}_shlat.eps ../TexFiles/Figures/
+    rm ztmp.sun
            }
 # ---
 
@@ -83,11 +117,10 @@ done
 if  [ ! $CONFIG_CASE ] ; then # infer config-case from local directory
   ztmp=$( basename $(dirname $here )) ; CONFIG_CASE=${ztmp#REPORT_}
 fi
-echo $CONFIG_CASE ; exit
 
 CONFIG=${CONFIG_CASE%-*}
 CASE=${CONFIG_CASE#*-}
-IDIR=$IDIR_ROOT/${CONFIG}/${CONFIG_CASE}-I
+IDIR=$IDIR_ROOT/${CONFIG}/${CONFIG}-I
 
 if [ $plot_all ] ; then
    pl_shlat ; pl_bfr ; pl_rnf 
@@ -101,3 +134,4 @@ else
 
   ( *   ) echo " This plot \( $plot \) is not yet supported." ;;
   esac
+fi

@@ -1,9 +1,10 @@
 \section{Numerical code}
+
 %---------------------------------------------------------------------------------------------------
 
 \subsection{Overview}
 
-This experiment was performed with version <NEMO_VER> of NEMO, based on revision <DCM_REV> of the Drakkar Configuration Manager (DCM). CPP keys used for compilation are:
+This experiment was performed with version 3.4 of NEMO, with revision 1196 of the DRAKKAR Config Manager (DCM). CPP keys used for compilation are:
 \input{./TexFiles/cpp}
 
 %---------------------------------------------------------------------------------------------------
@@ -12,36 +13,48 @@ This experiment was performed with version <NEMO_VER> of NEMO, based on revision
 
 \subsubsection{Vertical physics}
 
-\paragraph{TKE scheme \\}
+\paragraph{Vertical mixing :TKE scheme, EVD and tidal mixing \\}
 
 TKE is used to determine the vertical diffusion coefficient. The relevant namelist data are indicated below. 
-Note that in this version, a non-standard treatment is performed on ice-covered area: (a) The background avt 
-coefficient is divided by 10 under ice. (b) There is no background of Tke under ice. (c) The coefficient for 
-surface input of tke (ebb) is reduced from 60 (open ocean) to 3.75 (ice covered regions). (d) Lang-Muir cells 
+Note that within DRAKKAR we use a non-standard treatment  on ice-covered area: (a) The background avt 
+coefficient is divided by 10 under ice.  (b) The coefficient for 
+surface input of tke (ebb) is reduced from 67.83 (open ocean) to 3.75 (ice covered regions). (c) Lang-Muir cells 
 parametrization is turned off below ice. \\
 
-For evd mixing coefficient we have \textit{rn\_avevd=10$m^2/s$} and we don't have any good reason to change it. \\
+In the mixing length calculation (a key variable in TKE scheme) \textit{nn\_mxl=3} is used, (the most sophisticated way for
+bounding the mixing length scale). \\
+ 
+The depth of penetration of surface tke is computed using \textit{nn\_htau=1} so that it increases from 0.5m at the equator to 30m 
+poleward of 40 degrees (standard values). Some experiments were performed in the UK (NOCS and UKMO) reducing to 10m the maximum
+value. A test of this modification performed with ORCA025 almost indicated a degradation (according to our standard) 
+of the mixed layer depth in summer. Gurvan suggest that the good way to proceed is to use a map of this 
+penetration depth, deduced from a wave monthly climatology. This is still to be done. \\
 
-We keep \textit{nn\_mxl=3} for mixing length (Gurvan's advice).
-For the TKE penetration below mixed layer we keep \textit{nn\_htau=1} with 0.5m at the equator to 30m 
-poleward of 40 degrees as we don't have any good reason to change it (at NOCS they decide to replace 
-30m by 10m in the code; Gurvan suggests to use a monthly climatology of waves to switch between 10m 
-and 30m according to the waves but we can't test this on an ORCA12 reference configuration). \\
+The vertical density instabilities are treated with enhanced vertical diffusivity (\textit{nn\_aevd=10$m^2/s$}) at the interface 
+of two layers with density inversion. In this simulation we don't apply mixing on momentum (\textit{nn\_evdm=0}). 
+For evd mixing coefficient we use the classical value \textit{rn\_avevd=10$m^2/s$}.\\
+
+Vertical mixing produced by the tidal internal wave breaking is parameterized in the simulation (\textit{key\_zdftmx} defined). 
+(Bessi\`eres et al., 2008\cite{Bessiere_al_GRL08}, Koch-Larrouy et al., 2007\cite{Koch-Larrouy_al_GRL07}).
+In this simulation, the parameterization formely derived for the Indonesian
+Through Flow region was also applied to the Solomon Sea (as suggested by \cite{Melet} ) and to the strait of Gibraltar. 
 
 %-----------------------------------namzdf--------------------------------------------
 \namdisplay{namzdf}
 \namdisplay{namzdf_tke}
+\namdisplay{namzdf_tmx}
 %-------------------------------------------------------------------------------------
+\textcolor{blue}{ JM : met on une carte du masque ITF etendu ? }
 
 \subsubsection{Horizontal physics}
 
 \paragraph{Tracers \\}
 
-We use TVD advection scheme for tracer. \\
+As in all the DRAKKAR simulation so far, TVD advection scheme for tracer is used. \\
 
-We use a laplacian isopycnal diffusivity for tracers. The diffusivity is proportionnal to the local 
-grid size (it decreases poleward). The horizontal eddy diffusivity for tracers is reduced 
-to 125 $m^2/s$ for ORCA12 configuration (compared to ORCA025 : 300 $m^2/s$). \\
+Tracer diffusion is performed with an isopycnal laplacian operator. The standard isopycnal slope computation is used.
+The diffusivity coefficient is proportionnal to the local grid size (it decreases poleward) and the maximum value at the
+equator is 100 $m^2/s$, in total agreement with the value used in ORCA025 ( 300 $m^2/s$). \\
 
 %-----------------------------------namtra_adv--------------------------------------------
 \namdisplay{namtra_adv}
@@ -50,30 +63,18 @@ to 125 $m^2/s$ for ORCA12 configuration (compared to ORCA025 : 300 $m^2/s$). \\
 
 \paragraph{Momentum \\}
 
-We use a vector form momentum advection scheme with energy and enstrophy (EEN) conserving conditions. \\
+Vector form momentum advection scheme with energy and enstrophy conserving conditions (EEN) is used. This simulation
+was realized before Nicolas Ducousso findings in the COMODO project. He found (1) that the lateral boundary condition along
+the model coast line has to be corrected  and (2) that the used numerical stencil in EEN may trigger an Hollinsworth instability
+impacting the way eddies are generated and propagates. This will be corrected in next round of simulations. \\
 
-We use a bi-harmonic viscosity for the lateral dissipation. Note that in the ORCA12 configuration, 
-the viscosity is reduced by a factor 14 compared to ORCA025 configuration. 
-The viscosity is proportionnal to the grid size power 3.
+Lateral momentum dissipation is achieved using an horizontal bi-harmonic operator. The hyper viscosity coefficient is proportional
+to the cube of the model grid size. The maximum value (absolute value) at the equator is  $1.25^{10} m^4/s$.
 
 %-----------------------------------namdyn_adv--------------------------------------------
 \namdisplay{namdyn_adv}
 \namdisplay{namdyn_vor}
 \namdisplay{namdyn_ldf}
-%-------------------------------------------------------------------------------------
-
-\subsubsection{Bottom Boundary Layer}
-
-We used bottom boundary layer parametrization (\cite{Beckmann1997}). 
-Both diffusive and advective BBL parametrization is used for tracers. 
-There is no advective BBL for momentum \footnote{We only apply the 
-improvement on BBL parametrization concerning tracers, not momentum, proposed in \cite{Hervieux}.}.\\
-
-\textcolor{blue}{D\'ecision (Jean-Marc): En fait pas de dynbbl} \\
-
-\textcolor{blue}{JMM added ln\_kriteria for NEMO3.4 (but we don't know if it is working, need to check sign issue in F95), I have to do a commit before starting!}
-%-----------------------------------nambbl--------------------------------------------
-\namdisplay{nambbl}
 %-------------------------------------------------------------------------------------
 
 \subsubsection{Lateral boundary condition}
@@ -83,62 +84,37 @@ Romain Bourdall\'e-Badie created this 2D shlat file and Markus Scheinert validat
 Figure \ref{shlat_v3} shows patches of no-slip condition: Mediterranean Sea, Indonesian ThroughFlow, 
 Baffin Strait; and a patch with regular transition from free-slip to no-slip: South West Greenland.
 
-\textcolor{blue}{Question: should we add Antarctic coast and Bering Strait in the no-slip patches ? If we do that we have a diplomatic problem because 
-it is contrary to what we decided at DRAKKAR meeting: Markus was designed responsible for shlat2d validation...} \\
-
-\textcolor{blue}{Decision (Bernard): On va prendre ce shlat v3 mais on va y ajouter d'autres patch no-slip a Bering et tout autour de l'Antarctique, aussi on va etendre le patch no-slip de SW Groenland} \\
-
-\textcolor{blue}{Objection (Thierry): no-slip Antarctique why not mais il faudrait un run test d\'edi\'e ORCA025, on va pas mettre ca direct dans le ORCA12 62 ans de reference...} \\
-
-\textcolor{blue}{Markus utilise bien v3 pour son run K003, si on ajoute les patchs Antarctique+Bering et qu'on modifie le patch SW Greenland, 
-il faudra informer Markus et Romain qu'on d\'ecide de ne pas se coordonner avec eux.}
-
 %-----------------------------------namlbc--------------------------------------------
 \namdisplay{namlbc}
 %-------------------------------------------------------------------------------------
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=15cm]{FIGURES/shlat2d_ORCA12grid_19102011_v3.eps}
+\includegraphics[width=15cm]{./TexFiles/Figures/<CONFIG_CASE>_shlat2d}
 \caption{Lateral boundary condition as defined in shlat2d\_ORCA12grid\_19102011\_v3.nc. Contours are bathymetry.}
 \label{shlat_v3}
 \end{center}
 \end{figure}
 
-\textcolor{blue}{Figures \ref{shlat_v0}, \ref{shlat_v1}, \ref{shlat_v2} show the other 2D shlat that we gave up.} 
+\subsubsection{Bottom Boundary Layer}
 
-\begin{figure}[H]
-\begin{center}
-\includegraphics[width=15cm]{FIGURES/shlat2d_ORCA12grid_19102011_v0.eps}
-\caption{Lateral boundary condition as defined in shlat2d\_ORCA12grid\_19102011\_v0.nc. Contours are bathymetry.}
-\label{shlat_v0}
-\end{center}
-\end{figure}
+We used bottom boundary layer parametrization of Beckmann and D\"oscher (2004)\cite{Beckmann1997}. 
+Both diffusive and advective BBL parametrization is used for tracers. 
+There is no advective BBL for momentum \footnote{We only apply the 
+improvement on BBL parametrization concerning tracers, not momentum, proposed in Hervieux (2007)\cite{Hervieux}.}.\\
 
-\begin{figure}[H]
-\begin{center}
-\includegraphics[width=15cm]{FIGURES/shlat2d_ORCA12grid_19102011_v1.eps}
-\caption{Lateral boundary condition as defined in shlat2d\_ORCA12grid\_19102011\_v1.nc. Contours are bathymetry.}
-\label{shlat_v1}
-\end{center}
-\end{figure}
+%-----------------------------------nambbl--------------------------------------------
+\namdisplay{nambbl}
+%-------------------------------------------------------------------------------------
 
-\begin{figure}[H]
-\begin{center}
-\includegraphics[width=15cm]{FIGURES/shlat2d_ORCA12grid_19102011_v2.eps}
-\caption{Lateral boundary condition as defined in shlat2d\_ORCA12grid\_19102011\_v2.nc. Contours are bathymetry.}
-\label{shlat_v2}
-\end{center}
-\end{figure}
 
-\subsubsection{Bottom boundary condition}
+\subsubsection{Bottom Friction}
 
-Bottom boundary condition is exactly the same as ORCA025.L75-GRD100. 
-We apply a nonlinear bottom friction rn\_bfri2=1.e-3 $m^2/s^2$. An enhanced bottom friction was applied 
-over the Bering Strait (fig. \ref{bfrcoef2}) and over the Torres Strait (fig. \ref{bfrcoef1}). The bottom friction coefficient was read in the file 
-orca12\_bfr\_coef\_MAL101.nc\footnote{This file was deduced from orca025\_bfr\_coef\_GRD100.nc, extending the ORCA025 domain over the ORCA12 domain 
-(i.e. copying one grid point into nine grid points with chgrid.f90 tool).}
-The enhanced bottom friction corresponds to the coefficient rn\_bfri2 multiplied by (1 + 2D bottom friction mask file multiplied by rn\_bfrien=10). \\
+A classical quadratic bottom friction is used, with a drag coefficient of rn\_bfri2=1.e-3 $m^2/s^2$. 
+An enhanced bottom friction was applied over the Bering Strait (fig. \ref{bfrcoef2}) and over the Torres Strait (fig. \ref{bfrcoef1}) (mask read in 
+the file orca12\_bfr\_coef\_MAL101.nc ). Then, the 2D drag coefficient is computed this way :\\
+$ bfrcoef2d(:,:) = rn\_bfri2 * ( 1 + rn\_bfrien * bfrcoef2d(:,:) ) $ \\
+In this simulation the amplification factor (rn\_bfrien) is set to 50, which imply the use of an implicit scheme for stability reasons. 
 
 %-----------------------------------nambfr--------------------------------------------
 \namdisplay{nambfr}
@@ -146,42 +122,97 @@ The enhanced bottom friction corresponds to the coefficient rn\_bfri2 multiplied
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=15cm]{FIGURES/bfr_coef2.eps}
+\includegraphics[width=15cm]{./TexFiles/Figures/<CONFIG_CASE>_bfr_coef_bering}
 \caption{Bottom friction coefficient in the vicinity of Bering Strait. Colors are bathymetry.}
 \label{bfrcoef2}
 \end{center}
 \end{figure}
-
+%
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=15cm]{FIGURES/bfr_coef1.eps}
+\includegraphics[width=15cm]{./TexFiles/Figures/<CONFIG_CASE>_bfr_coef_torres}
 \caption{Bottom friction coefficient in the vicinity of Torres Strait. Colors are bathymetry.}
 \label{bfrcoef1}
 \end{center}
 \end{figure}
 
-\textcolor{blue}{Remarque: Markus n'a pas de mask pour la bottom friction dans son run K003.} \\
-
 \subsubsection{Tracer damping strategy}
 
-We use 3D restoring of temperature and salinity toward annual climatology of Gouretski and Koltermann (2004) in very specific areas. 
-We use the same regional 3D damping as in ORCA025.L75-GRD100 simulation.
-%-----------------------------------namtra_dmp--------------------------------------------
-\namdisplay{namtra_dmp}
-\namdisplay{namtsd}
-%-------------------------------------------------------------------------------------
-
-\textcolor{blue}{Question: Does nn\_hdmp=-2 option already implemented in NEMO3.4 or should we do it ?}
+The tracer damping strategy is common to all our DRAKKAR runs (nn\_hdmp=-2). Although the idea is to keep tracer damping as reduced as possible, 
+it is necessary to have it in order to address the following 3 identified problems : \\
+(1) Fix tracer trends in almost closed seas where the forcing is not trusted,
+(2) fix spurious modification of water mass properties downstream of overflow regions and 
+(3) reduce the long term trend in ACC transport, linked to the decrease of AABW volume.  \\
+The Gouretski and Koltermann (2004) annual climatology is used; this climatology, build with isopycnal interpolation previous the regridding on z-level is
+prefered to the standard Levitus climatology, especially for the Southern Ocean, were spurious density inversion in Levitus are noticeable. \\
+In the DRAKKAR version of \textit{tradmp.F90}, \textit{resto} subroutine has been modified so that the definitions of the restoring zones are independant of
+the model configuration and are given in geographical coordinates either as a rectangular shape or as a circular shape with localized center and given radius,
+associated with a depth range.
+This helps in maintaining a coherent strategy for all the DRAKKAR configurations. \\
+\\
+In the following paragraphs some details on the implementation of the tracer damping for the three points mentioned above:\\
 
 \paragraph{Regional 3D damping (semi-enclosed seas) \\}
 
-Red + Black Sea, Persian Gulf: 3D T S restoring with a time scale of 180 days.
+Table  \ref{table3Ddmp} gives the characteristics of the 3D TS damping zones.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Region} & \textbf{Longitude Range} & \textbf{Latitude Range}  & \textbf{Depth Range(m)}  & \textbf{ time scale (d)} \\
+\hline
+\textbf{Red Sea}         & 29.4 E - 43.6 E & 12.9 N - 30.3 N          &  0. - bottom             & 180.     \\
+\textbf{Black Sea}       & 27.4 E - 42.0 E & 41.0 N - 47.5 N          &  0. - bottom             & 180.     \\
+\textbf{Persian Gulf}    & 46.5 E - 57.0 E & 23.0 N - 31.5 N          &  0. - bottom             & 180.      \\
+\hline
+\end{tabular}
+\label{table3Ddmp}
+\caption{ Definition of 3D TS restoring zone.}
+\end{center}
+\end{table}
 
 \paragraph{Downstream the overflows \\}
+One of the major flaws of the numerical model is its incapacity of well representing the overflow of dense waters over sills, despites the BBL parameterization.
+As a consequence of this flaw, the entrainement downstream the sill is far too much, leading to produce a too light (hence too shallow)  overflow water. \\
 
-Gulf of Cadix downstream Gibraltar Strait in the depth range 600-1300m: time scale of 6 days. \\
-Gulf of Aden downstream Bab-El-Mandeb: time scale of 6 days over the whole water column. \\
-Arabian Gulf downstream of the Ormuz Strait : \textcolor{blue}{which time scale ?}
+This effect is particularly dramatic for the mediterranean outflow at Gibraltar Strait: without damping, in general the Med Sea Water (MW) spreads out at 450-500m 
+whereas it should get deep to 1200 m. After years of simulations, this has a huge impact on the water masses of the North Atlantic, which is 
+not acceptable. In ORCA12.L46-MAL101 simulation, we found that at this resolution and with a precise local bathymetry, that preserves a natural submarine canyon,
+we were able to significantly improve the quality (both in depth and density) of the MW overflow, but with the climatological forcing, (this run) it appeared 
+that for a long integration it was not enough and we did not take the risk of "poluting" all the North Atlantic. Other similar regions such as Bab-el-Mandeb 
+(conexion between the Red Sea and the Gulf of Aden) and Ormuz Strait (conexion between the Persian Gulf and the Arabian Sea) should behave in an almost similar
+way and the same restoring strategy is used there. \\
+
+The overflow of the Nordic Seas at Denmark strait and Faroes Bank channel, cannot be fixed so drastically, because on long term run, the interannual variability
+(which is one of our scientific interest) may be driven by the variability of the overflow, which is killed by the TS restoring process.
+\textcolor{blue}{ JMM : commentaires plus pertinent ??}\\
+
+In the climatological run, we do observed the formation of a spurious polynia in the center of the Wedell Sea and as a consequence, a very deep convection (almost to the bottom) there, that drastically changed the properties of the deep waters. Many tests were performed (see section \ref{prod}) aiming at eliminating the polynia, but none worked satisfactory, except having a light TS restoring in the upper ocean. Due to the production context of the GENCI "grand challenge", with very
+short available production time, we opt for keeping this light restoring.
+
+ Table \ref{tableoverflowdmp} gives the characteristics of the overflow damping zone.
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Region} & \textbf{Patch Center}        & \textbf{Patch Radius (km)}  & \textbf{Depth Range(m)}  & \textbf{ time scale (d)} \\
+\hline
+\textbf{Gibraltar Strait}  & 7.0 W - 36.0 N    &  80                       &  600 - 1300              & 6.     \\
+\textbf{Bab-el-Mandeb}     & 44.75 E - 11.5 N  &  100                      &  0 - bottom              & 6.     \\
+\textbf{Ormuz Strait}      & 57.75 E - 25.0 N  &  100                      &  0 - bottom              & 6.     \\
+\hline
+\hline
+\textbf{  }        & \textbf{Longitude Range} & \textbf{Latitude Range}  & \textbf{Depth Range(m)}  & \textbf{ time scale (d)} \\
+\hline
+\textbf{Wedell Sea}    & 66 W - 15.0 E            & 75.0 S - 60.0 S          &  0. - 500             & 360.      \\
+\hline
+\end{tabular}
+\label{tableoverflowdmp}
+\caption{ Definition of overflow restoring zones.}
+\end{center}
+\end{table}
+
 
 \paragraph{Antarctic Bottom Water restoring \\}
 
@@ -195,42 +226,9 @@ WDMP=ORCA12.L46_dmp_mask.nc
 
 This ORCA12.L46\_dmp\_mask.nc file was created with \textit{cdfmaskdmp} cdftool using T/S Gouretski climatology 2004. \\
 
-\textcolor{blue}{Question: Comment on fait pour definir plusieurs rn\_timsk en rn\_dep correspondant à chacune de ces zones ?}
-
-%---------------------------------------------------------------------------------------------------
-
-\subsection{Autres trucs}
-
-\textcolor{blue}{J'ai not\'e aussi ITF tidal mixing parametrization. On en fait quoi ? Pour l'instant on attend toujours une r\'eponse de Florent Liard pour avoir M2 K1 sur une grille ORCA12...}
-
-%---------------------------------------------------------------------------------------------------
-
-\subsection{Ice details}
-
-\subsubsection{EVP rheology}
-
-The model used the LIM2 model, but with the Elasto-Visco-Plastic rheology. The ice-ocean coupling is done every 6 model steps (i.e. every 36min). \\
-
-\textcolor{blue}{Question: which frequency for wind stress computing ?}
-
-\subsubsection{Thermodynamics}
-
-The standard LIM2 thermodynamics is used. The only change with respect to the standard code is the use of cloud cover files (synoptic) instead 
-of a standard constant value for nebulosity. It has an impact on the net shortwave radiation which is not absorbed in the thin surface 
-layer and penetrates inside the ice cover. \\
-
-\textcolor{blue}{Note that the ice thickness for lateral accretion (\textit{hiccrit}) is 0.6 in the Northern and Southern Hemisphere.}
-
-%-----------------------------------namicedyn--------------------------------------------
-\namdisplay{namicedyn}
-\namdisplay{namicethd}
+%-----------------------------------namtra_dmp--------------------------------------------
+\namdisplay{namtra_dmp}
+\namdisplay{namtsd}
 %-------------------------------------------------------------------------------------
 
-
-\textcolor{blue}{Remark: In namicedyn bloc Romain has difference with us (dm=0.0e+03; nbitdr=550; resl=1.0e-06; cw=1.0e-02; 
-pstar=2.5e+04; creepl=5.0e-09; ahi0=20.e0; telast=240). Should we take the same namicedyn bloc as him ?} \\
-
-\textcolor{blue}{Remark: Actuellement on a exactement la meme namelist\_ice que Markus pour K003} \\
-
-
-
+%---------------------------------------------------------------------------------------------------
