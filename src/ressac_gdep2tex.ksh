@@ -64,8 +64,8 @@ cat $gdep_in | awk '{ if ( NR >1 ) { printf" \\textbf{%s} & \\textbf{%s} & \\tex
 cat << eof >> $gdep_out
 \hline
 \end{tabular}
-\label{gdep}
 \caption{ Vertical levels and vertical metrics used in the simulation}
+\label{gdep}
 \end{center}
 \end{table}
 eof
