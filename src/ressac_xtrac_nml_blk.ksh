@@ -56,7 +56,7 @@ blk_list()          {
                     }
 # ====================================================================================================================
    NAM_DIR=../TexFiles/Namelist
-   OCE_BLK=" namrun namzdf namzdf_tke namtra_adv namtra_ldf namtra_dmp namtra_qsr namzdf_tmx namdyn_adv \
+   OCE_BLK=" namrun namdom namzdf namzdf_tke namtra_adv namtra_ldf namtra_dmp namtra_qsr namzdf_tmx namdyn_adv \
              namdyn_vor namdyn_ldf nambbl namsbc namsbc_core namsbc_rnf namsbc_ssr namlbc nambfr namtra_dmp namtsd "
    ICE_BLK=" namicerun namiceini namicedyn namicethd "
    nam_nm="namelist"
