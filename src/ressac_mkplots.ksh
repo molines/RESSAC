@@ -124,11 +124,17 @@ pl_dmpmask() {
                                                  mv ${CONFIG_CASEnoDOT}_dmpmask3000.eps ../TexFiles/Figures/
 
     echo damping mask section at 30 W being plotted
-    # find an automatic way for 3200 1600 ... ( 30 W > 20 S )
-    $COUPE -noproj -noint -ijgrid -pts 3200 3200 1 1600 -clrdata $file -clrvar wdmp  -pmax -6000  -clrmet 1  -zstep 1000 -zgrid -spval 0 \
+    i30w=$( ncks -FH -d y,1,1 -v nav_lon $file  | awk -F= '{ lon=$2  ; if ( lon < 0 ) lon=lon+360 ; if ( lon > 329.9 ) { print $0 ; nextfile } }' \
+       | sed -e 's/(/ /' -e 's/)/ /' | awk '{print $2}')
+    jeq=$(ncks -FH -d x,10,10 -v nav_lat $file | awk -F= '{ lat=$2 ; if ( lat > 0 ) { print $0 ; nextfile } }' \
+       | sed -e 's/(/ /g' -e 's/)/ /g' | awk '{print $4}')
+
+set -x
+    $COUPE -noproj -noint -ijgrid -pts $i30w $i30w 1 $jeq -clrdata $file -clrvar wdmp  -pmax -6000  -clrmet 1  -zstep 1000 -zgrid -spval 0 \
          -o ${CONFIG_CASEnoDOT}_dmpmask30W.cgm 
+set +x
     cgm2jpgeps ${CONFIG_CASEnoDOT}_dmpmask30W ; mv ${CONFIG_CASEnoDOT}_dmpmask30W.jpg ../TexFiles/Figures/
-                                                 mv ${CONFIG_CASEnoDOT}_dmpmask30W.eps ../TexFiles/Figures/
+                                                mv ${CONFIG_CASEnoDOT}_dmpmask30W.eps ../TexFiles/Figures/
 
              }
 
