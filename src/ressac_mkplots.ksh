@@ -5,6 +5,7 @@
 
 IDIR_ROOT=/fsnet/data/meom/MODEL_SET
 CHART=chart
+COUPE=coupe
 
 usage() {
       echo " "
@@ -38,6 +39,7 @@ lstplot () {
       echo "   shlat    : plot the shlat 2D coefficient."
       echo "   bfr      : plot the bfr  2D mask."
       echo "   rnf      : plot the runoff mask coefficient"
+      echo "   dmpmask  : plot the southern ocean damping mask"
       echo " ..."
       exit 0
            }
@@ -82,18 +84,18 @@ pl_shlat() {
 
 pl_bfr()   {
     echo bfr_Bering being plotted
-    bering="-180 -160 60 75 "
+    bering="-180 -160 60 70 "
     file=$(get_includefile BFR )
-    ln -s  $IDIR/$bathy ./$bathy
     ln -s $IDIR/$file ./$file
-echo  $CHART -hi -proj ME -clrdata $file -clrvar bfr_coef -clrmet 1 -p lowwhite.pal -o ${CONFIG_CASEnoDOT}_bfr_bering.cgm -zoom $bering -360
-    $CHART -hi -proj ME -clrdata $file -clrvar bfr_coef -clrmet 1 -p lowwhite.pal -o ${CONFIG_CASEnoDOT}_bfr_bering.cgm -zoom $bering -360
+    $CHART -hi -proj ME -clrdata $file -clrvar bfr_coef -clrmet 1 -p lowwhite.pal -o ${CONFIG_CASEnoDOT}_bfr_bering.cgm -zoom $bering \
+          -xstep 5 -ystep 5 -xgrid -ygrid
     cgm2jpgeps ${CONFIG_CASEnoDOT}_bfr_bering ; mv ${CONFIG_CASEnoDOT}_bfr_bering.jpg ../TexFiles/Figures/
                                                 mv ${CONFIG_CASEnoDOT}_bfr_bering.eps ../TexFiles/Figures/
 
     echo bfr_Torres being plotted
-   torres=" 135 159 -15 -5 "
-    $CHART -hi -proj ME   -clrdata $file -clrvar bfr_coef -clrmet 1 -p lowwhite.pal -o ${CONFIG_CASEnoDOT}_bfr_torres.cgm -zoom $torres -360
+   torres=" 135 150 -15 -5 "
+    $CHART -hi -proj ME   -clrdata $file -clrvar bfr_coef -clrmet 1 -p lowwhite.pal -o ${CONFIG_CASEnoDOT}_bfr_torres.cgm -zoom $torres \
+        -xstep 5 -ystep 5 -xgrid -ygrid
     cgm2jpgeps ${CONFIG_CASEnoDOT}_bfr_torres ; mv ${CONFIG_CASEnoDOT}_bfr_torres.jpg ../TexFiles/Figures/
                                                 mv ${CONFIG_CASEnoDOT}_bfr_torres.eps ../TexFiles/Figures/
            }
@@ -104,6 +106,31 @@ pl_rnf()   {
            }
 
 # ---
+pl_dmpmask() {
+    echo damping mask at 2000 m being plotted
+    file=$(get_includefile WDMP )
+    bathy=$(get_includefile BATFILE_METER ) 
+    ln -s $IDIR/$file ./$file
+    lev=$(ncks -HF -v deptht $file | awk -F= '{if ( $2 > 2000 ) {print $1; nextfile }  }' | sed -e 's/(/ /' -e 's/)/ /' | awk '{print $2}')
+    $CHART -pixel -clrmet 1 -p lowwhite.pal -clrdata $file -clrlev $lev  -clrvar wdmp -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
+         -title @CLR_DEPTH@m -o  ${CONFIG_CASEnoDOT}_dmpmask2000.cgm 
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_dmpmask2000 ; mv ${CONFIG_CASEnoDOT}_dmpmask2000.jpg ../TexFiles/Figures/
+                                                 mv ${CONFIG_CASEnoDOT}_dmpmask2000.eps ../TexFiles/Figures/
+    echo damping mask at 3000 m being plotted
+    lev=$(ncks -HF -v deptht $file | awk -F= '{if ( $2 > 3000 ) {print $1; nextfile }  }' | sed -e 's/(/ /' -e 's/)/ /' | awk '{print $2}')
+    $CHART -pixel -clrmet 1 -p lowwhite.pal -clrdata $file -clrlev $lev  -clrvar wdmp -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
+         -title @CLR_DEPTH@m -o  ${CONFIG_CASEnoDOT}_dmpmask3000.cgm 
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_dmpmask3000 ; mv ${CONFIG_CASEnoDOT}_dmpmask3000.jpg ../TexFiles/Figures/
+                                                 mv ${CONFIG_CASEnoDOT}_dmpmask3000.eps ../TexFiles/Figures/
+
+    echo damping mask section at 30 W being plotted
+    # find an automatic way for 3200 1600 ... ( 30 W > 20 S )
+    $COUPE -noproj -noint -ijgrid -pts 3200 3200 1 1600 -clrdata $file -clrvar wdmp  -pmax -6000  -clrmet 1  -zstep 1000 -zgrid -spval 0 \
+         -o ${CONFIG_CASEnoDOT}_dmpmask30W.cgm 
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_dmpmask30W ; mv ${CONFIG_CASEnoDOT}_dmpmask30W.jpg ../TexFiles/Figures/
+                                                 mv ${CONFIG_CASEnoDOT}_dmpmask30W.eps ../TexFiles/Figures/
+
+             }
 
 # ---
 here=$(pwd)
@@ -141,12 +168,13 @@ CASEnoDOT=$(echo $CASE | tr -d '.')
 CONFIG_CASEnoDOT=${CONFIGnoDOT}-${CASEnoDOT}
 
 if [ $plot_all ] ; then
-   pl_shlat ; pl_bfr ; pl_rnf 
+   pl_shlat ; pl_bfr ; pl_rnf ; pl_dmpmask
 else
   case $plot in 
-  (shlat) pl_shlat ;;
-  ( bfr ) pl_bfr   ;;
-  ( rnf ) pl_rnf   ;;
+  (shlat    ) pl_shlat ;;
+  ( bfr     ) pl_bfr   ;;
+  ( rnf     ) pl_rnf   ;;
+  ( dmpmask ) pl_dmpmask   ;;
 
 
 
