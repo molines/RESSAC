@@ -40,6 +40,8 @@ lstplot () {
       echo "   bfr      : plot the bfr  2D mask."
       echo "   rnf      : plot the runoff mask coefficient"
       echo "   dmpmask  : plot the southern ocean damping mask"
+      echo "   maskitf  : plot the ITF mask associated with zdf_tmx"
+      echo "   iceini   : plot the ice initial condition (lead frac and thickness)."
       echo " ..."
       exit 0
            }
@@ -80,8 +82,31 @@ pl_shlat() {
                                            mv ${CONFIG_CASEnoDOT}_shlat.eps ../TexFiles/Figures/
     rm ztmp.sun
            }
-# ---
 
+# ---
+pl_maskitf() {
+    echo ITF region :maskitf being plotted
+    itf="100 170 -20 20 "
+    ztmp="$(get_data_file sn_mskitf namzdf_tmx )"
+    file=$( echo $ztmp | awk '{print $1}' )
+    var=$( echo $ztmp  | awk '{print $2}' )
+
+    ln -s $IDIR/$file ./$file
+    $CHART  -proj ME -hi -zoom $itf  -clrdata $file -clrvar $var -clrmet 1 -p lowwhite.pal -o ${CONFIG_CASEnoDOT}_maskitf-itf.cgm \
+         -xstep 10 -ystep 10 -xgrid -ygrid -clrxypal 0.1 0.95 0.1 0.2 -noteam
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_maskitf-itf ; mv ${CONFIG_CASEnoDOT}_maskitf-itf.jpg ../TexFiles/Figures/
+                                                 mv ${CONFIG_CASEnoDOT}_maskitf-itf.eps ../TexFiles/Figures/
+    rm ztmp.sun
+    echo Gibraltar region :maskitf being plotted
+    gib="-10 0 35 38 "
+    $CHART  -proj ME -hi -zoom $gib  -clrdata $file -clrvar $var -clrmet 1 -p lowwhite.pal -o ${CONFIG_CASEnoDOT}_maskitf-gib.cgm \
+         -xstep 2 -ystep 2 -xgrid -ygrid -clrxypal 0.1 0.95 0.2 0.3 -noteam
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_maskitf-gib ; mv ${CONFIG_CASEnoDOT}_maskitf-gib.jpg ../TexFiles/Figures/
+                                                 mv ${CONFIG_CASEnoDOT}_maskitf-gib.eps ../TexFiles/Figures/
+    rm ztmp.sun
+           }
+
+# ---
 pl_bfr()   {
     echo bfr_Bering being plotted
     bering="-180 -160 60 70 "
@@ -98,6 +123,38 @@ pl_bfr()   {
         -xstep 5 -ystep 5 -xgrid -ygrid
     cgm2jpgeps ${CONFIG_CASEnoDOT}_bfr_torres ; mv ${CONFIG_CASEnoDOT}_bfr_torres.jpg ../TexFiles/Figures/
                                                 mv ${CONFIG_CASEnoDOT}_bfr_torres.eps ../TexFiles/Figures/
+           }
+
+# ---
+pl_iceini()   {
+    echo  iceini ithic being plotted
+    file=$(get_includefile ICEINI )
+    nsdic=Init_Ice_GLORYS1V1_NSIDC_BOOTSTRAP_y1989m01_new_spval.nc
+    batnsdic=ORCA025_bathy_etopo1_gebco1_smoothed_coast_corrected_mar10_time.nc
+    bathy=$(get_includefile BATFILE_METER ) 
+    ln -sf $IDIR/$file ./$file
+
+    $CHART -pixel -clrdata $file -clrmet 1 -xyplot 0 1 0 1 -noteam -clrmin 0 -clrmax 4.2 -nograd -clrvar hicif \
+           -o ${CONFIG_CASEnoDOT}_ithic.cgm -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 -cntilt ''
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_ithic ; mv ${CONFIG_CASEnoDOT}_ithic.jpg ../TexFiles/Figures/
+                                           mv ${CONFIG_CASEnoDOT}_ithic.eps ../TexFiles/Figures/
+
+    $CHART -pixel -clrdata $nsdic -clrmet 1 -xyplot 0 1 0 1 -noteam -clrmin 0 -clrmax 4.2 -nograd -clrvar hicif \
+           -o Bootstrap_ithic.cgm -cntdata $batnsdic -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10  -cntilt ''
+    cgm2jpgeps Bootstrap_ithic           ; mv Bootstrap_ithic.jpg ../TexFiles/Figures/
+                                           mv Bootstrap_ithic.eps ../TexFiles/Figures/
+
+    echo  iceini ithic being plotted
+    $CHART -pixel -clrdata $file -clrmet 1 -xyplot 0 1 0 1 -noteam -clrmin 0 -clrmax 1 -nograd -clrvar frld \
+           -o ${CONFIG_CASEnoDOT}_leadfr.cgm -cntdata $bathy -cntvar Bathymetry -cntmin 0.8 -cntmax 10 -cntint 10 -cntilt '' -spval 1
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_leadfr ; mv ${CONFIG_CASEnoDOT}_leadfr.jpg ../TexFiles/Figures/
+                                            mv ${CONFIG_CASEnoDOT}_leadfr.eps ../TexFiles/Figures/
+
+    $CHART -pixel -clrdata $nsdic -clrmet 1 -xyplot 0 1 0 1 -noteam -clrmin 0 -clrmax 1 -nograd -clrvar frld \
+           -o Bootstrap_leadfr.cgm -cntdata $batnsdic -cntvar Bathymetry -cntmin 0.8 -cntmax 10 -cntint 10 -cntilt '' -spval 1
+    cgm2jpgeps Bootstrap_leadfr ;           mv Bootstrap_leadfr.jpg ../TexFiles/Figures/
+                                            mv Bootstrap_leadfr.eps ../TexFiles/Figures/
+
            }
 
 # ---
@@ -175,15 +232,15 @@ CASEnoDOT=$(echo $CASE | tr -d '.')
 CONFIG_CASEnoDOT=${CONFIGnoDOT}-${CASEnoDOT}
 
 if [ $plot_all ] ; then
-   pl_shlat ; pl_bfr ; pl_rnf ; pl_dmpmask
+   pl_shlat ; pl_bfr ; pl_rnf ; pl_dmpmask ; pl_maskitf ; pl_iceini
 else
   case $plot in 
-  (shlat    ) pl_shlat ;;
-  ( bfr     ) pl_bfr   ;;
-  ( rnf     ) pl_rnf   ;;
+  (shlat    ) pl_shlat     ;;
+  ( bfr     ) pl_bfr       ;;
+  ( rnf     ) pl_rnf       ;;
   ( dmpmask ) pl_dmpmask   ;;
-
-
+  ( maskitf ) pl_maskitf   ;;
+  ( iceini  ) pl_iceini    ;;
 
   ( *   ) echo " This plot \( $plot \) is not yet supported." ;;
   esac
