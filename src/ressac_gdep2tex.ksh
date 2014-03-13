@@ -53,7 +53,7 @@ first_line=$( head -1 $gdep_in )
 zline=$(echo $first_line | awk '{printf" \\textbf{%s} & \\textbf{%s} & \\textbf{%s} & \\textbf{%s} & \\textbf{%s} \\\\ \n" ,$1,$2,$3,$4,$5 }')
 
 cat << eof > $gdep_out
-\begin{table}
+\begin{table}[H]
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|}
 \hline
