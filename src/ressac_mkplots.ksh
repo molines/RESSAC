@@ -154,12 +154,21 @@ pl_iceini()   {
            -o Bootstrap_leadfr.cgm -cntdata $batnsdic -cntvar Bathymetry -cntmin 0.8 -cntmax 10 -cntint 10 -cntilt '' -spval 1
     cgm2jpgeps Bootstrap_leadfr ;           mv Bootstrap_leadfr.jpg ../TexFiles/Figures/
                                             mv Bootstrap_leadfr.eps ../TexFiles/Figures/
-
            }
 
 # ---
 pl_rnf()   {
-    echo rnf
+    echo rnf being plotted
+    ztmp="$(get_data_file sn_cnf namsbc_rnf )"
+    file=$( echo $ztmp | awk '{print $1}' )
+    var=$( echo $ztmp  | awk '{print $2}' )
+    bathy=$(get_includefile BATFILE_METER )
+    ln -sf $IDIR/$file ./$file
+
+    $CHART -pixel -clrdata $file -clrmet 1 -xyplot 0 1 0 1 -noteam -clrmin 0 -clrmax 0.5 -nograd -clrvar $var -p lowwhite.pal \
+           -o ${CONFIG_CASEnoDOT}_rnf_mask.cgm -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 -cntilt ''
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_rnf_mask ; mv ${CONFIG_CASEnoDOT}_rnf_mask.jpg ../TexFiles/Figures/
+                                              mv ${CONFIG_CASEnoDOT}_rnf_mask.eps ../TexFiles/Figures/
            }
 
 # ---
@@ -181,10 +190,6 @@ pl_dmpmask() {
                                                  mv ${CONFIG_CASEnoDOT}_dmpmask3000.eps ../TexFiles/Figures/
 
     echo damping mask section at 30 W being plotted
-#   i30w=$( ncks -FH -d y,1,1 -v nav_lon $file  | awk -F= '{ lon=$2  ; if ( lon < 0 ) lon=lon+360 ; if ( lon > 329.9 ) { print $0 ; nextfile } }' \
-#      | sed -e 's/(/ /' -e 's/)/ /' | awk '{print $2}')
-#   j10n=$(ncks -FH -d x,10,10 -v nav_lat $file | awk -F= '{ lat=$2 ; if ( lat > 10 ) { print $0 ; nextfile } }' \
-#      | sed -e 's/(/ /g' -e 's/)/ /g' | awk '{print $4}')
 
 set -x
     $COUPE -pts -30 -30 -75 10   -clrdata $file -clrvar wdmp -pmax -6000 -clrmet 1 -zstep 1000 -zgrid -spval 0 -ystep 5 -ygrid \
