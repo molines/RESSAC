@@ -40,6 +40,7 @@ lstplot () {
       echo "   bfr      : plot the bfr  2D mask."
       echo "   rnf      : plot the runoff mask coefficient"
       echo "   dmpmask  : plot the southern ocean damping mask"
+      echo "   scal     : plot the scalability curv"
       echo "   maskitf  : plot the ITF mask associated with zdf_tmx"
       echo "   iceini   : plot the ice initial condition (lead frac and thickness)."
       echo " ..."
@@ -200,7 +201,13 @@ set +x
                                                 mv ${CONFIG_CASEnoDOT}_dmpmask30W.eps ../TexFiles/Figures/
 
              }
-
+# ---
+pl_scal()    {
+      cat perf.txt | graph -Tpng -g 3 -W 0.005 -C -S 16 0.05 -m 0 -w 0.8 -r 0.12 \
+       -X 'Number of cores' -Y 'Steps/mn' -L "${CONFIG_CASE}"  > ztmp.png
+       convert ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_scalability.jpg
+       convert ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_scalability.eps
+             }
 # ---
 here=$(pwd)
 if [ $(basename $here)  != INPUT_DATA ] ; then
@@ -244,6 +251,7 @@ else
   ( bfr     ) pl_bfr       ;;
   ( rnf     ) pl_rnf       ;;
   ( dmpmask ) pl_dmpmask   ;;
+  ( scal    ) pl_scal  ;;
   ( maskitf ) pl_maskitf   ;;
   ( iceini  ) pl_iceini    ;;
 
