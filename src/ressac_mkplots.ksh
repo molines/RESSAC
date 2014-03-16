@@ -36,13 +36,14 @@ usage() {
 
 lstplot () {
       echo " Possible argument of -p switch  are :"
-      echo "   shlat    : plot the shlat 2D coefficient."
-      echo "   bfr      : plot the bfr  2D mask."
-      echo "   rnf      : plot the runoff mask coefficient"
-      echo "   dmpmask  : plot the southern ocean damping mask"
-      echo "   scal     : plot the scalability curv"
-      echo "   maskitf  : plot the ITF mask associated with zdf_tmx"
-      echo "   iceini   : plot the ice initial condition (lead frac and thickness)."
+      echo "   shlat     : plot the shlat 2D coefficient."
+      echo "   bfr       : plot the bfr  2D mask."
+      echo "   rnf       : plot the runoff mask coefficient"
+      echo "   dmpmask   : plot the southern ocean damping mask"
+      echo "   scal      : plot the scalability curv"
+      echo "   maskitf   : plot the ITF mask associated with zdf_tmx"
+      echo "   iceini    : plot the ice initial condition (lead frac and thickness)."
+      echo "   distcoast : plot the distance to coast as seen in sss restoring file"
       echo " ..."
       exit 0
            }
@@ -83,6 +84,33 @@ pl_shlat() {
                                            mv ${CONFIG_CASEnoDOT}_shlat.eps ../TexFiles/Figures/
     rm ztmp.sun
            }
+
+# ---
+pl_distcoast() {
+    echo distcoast being plotted
+    ztmp="$(get_data_file sn_coast namsbc_ssr )"
+    file=$( echo $ztmp | awk '{print $1}' )
+    var=$( echo $ztmp  | awk '{print $2}' )
+
+    bathy=$(get_includefile BATFILE_METER )
+    ln -s  $IDIR/$bathy ./$bathy
+    ln -s $IDIR/$file ./$file
+    cat << eof > clrmark
+0
+150
+500
+1000
+2000
+3000
+4000
+eof
+    $CHART  -pixel -clrdata $file -clrvar $var -clrmark clrmark  -p hotres.pal -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
+            -cntilt ' ' -o ${CONFIG_CASEnoDOT}_distcoast.cgm -clrscale 0.001 -format PALETTE I4 
+    cgm2jpgeps ${CONFIG_CASEnoDOT}_distcoast ; mv ${CONFIG_CASEnoDOT}_distcoast.jpg ../TexFiles/Figures/
+                                               mv ${CONFIG_CASEnoDOT}_distcoast.eps ../TexFiles/Figures/
+    rm ztmp.sun
+               }
+
 
 # ---
 pl_maskitf() {
@@ -244,7 +272,7 @@ CASEnoDOT=$(echo $CASE | tr -d '.')
 CONFIG_CASEnoDOT=${CONFIGnoDOT}-${CASEnoDOT}
 
 if [ $plot_all ] ; then
-   pl_shlat ; pl_bfr ; pl_rnf ; pl_dmpmask ; pl_maskitf ; pl_iceini
+   pl_shlat ; pl_bfr ; pl_rnf ; pl_dmpmask ; pl_maskitf ; pl_iceini ; pl_scal ; pl_distcoast ; 
 else
   case $plot in 
   (shlat    ) pl_shlat     ;;
@@ -254,6 +282,7 @@ else
   ( scal    ) pl_scal  ;;
   ( maskitf ) pl_maskitf   ;;
   ( iceini  ) pl_iceini    ;;
+  ( distcoast) pl_distcoast  ;;
 
   ( *   ) echo " This plot \( $plot \) is not yet supported." ;;
   esac
