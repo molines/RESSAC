@@ -241,69 +241,47 @@ pl_scal()    {
              }
 
 # ---
-pl_maxmoc() {
+#  PLot Drakkar MONitoring Time Series : 2 mandatory arguments : file and variable from DMON tools time series files
+#                                options -y ymin ymax
+#                                        -x xmin xmax
+#                                        -s scale_factor ( usefull for sign and/or units )
+pl_dmon_ts() {
     file=$1
     var=$2
-    np=$(ncdump -h $file | grep UNLIM | tr -d '(' | awk '{print $6}')
-    configcase=${file%_1y*}
-    year1=$(ncdump -h $file | grep start_date | awk '{ print int($3/10000)}')
-    year2=$(( year1 + np - 1 ))
-    ncks -FHC -v $var  $file | awk -F= '{if (NF != 0 ) print NR+year1-1 " "$NF}' year1=$year1  | \
-          graph -Tpng -C -W 0.003 -w 0.8 -r 0.1 -g 3 -h 0.4 -x $year1 $year2 -y 15 23 \
-          -S 16 -X 'YEARS' -Y 'Max AMOC (Sv)'\
-          --bitmap-size 1024x1024 -L $configcase > ztmp.png
- 
-          convert -crop 1024x585+0+330 ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_${var}.jpg
-          convert -crop 1024x585+0+330 ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_${var}.eps
-          \rm ztmp.png
-            }
-# ---
-pl_drake() {
-    file=$1
-    var=$2
-    np=$(ncdump -h $file | grep UNLIM | tr -d '(' | awk '{print $6}')
-    configcase=${file%_1y*}
-    year1=$(ncdump -h $file | grep start_date | awk '{ print int($3/10000)}')
-    year2=$(( year1 + np - 1 ))
-    ncks -FHC -v $var  $file | awk -F= '{if (NF != 0 ) print NR+year1-1 " "$NF*-1}' year1=$year1  | \
-          graph -Tpng -C -W 0.003 -w 0.8 -r 0.1 -g 3 -h 0.4 -x $year1 $year2 \
-          -S 16 -X 'YEARS' -Y 'Drake transport (Sv)'\
-          --bitmap-size 1024x1024 -L $configcase > ztmp.png
- 
-          convert -crop 1024x585+0+330 ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_${var}.jpg
-          convert -crop 1024x585+0+330 ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_${var}.eps
-          \rm ztmp.png
-            }
-
-# ---
-pl_trp() {
+    # default values for options
+    xoption=''
     yoption=''
-    case $3 in 
-    ( -y ) yoption="-y $4 $5"
-    esac
+    scale=1
+    # parse arguments
+    while (( $# > 0 )) ; do
+     case $1 in
+     (-y ) shift ;  yoption="-y $1 $2" ; shift 2 ;;
+     (-x ) shift ;  xoption="-x $1 $2" ; shift 2 ;;
+     (-s ) shift ;  scale=$1           ; shift   ;;
+     ( * )           shift ;;   # silently skip unknown options
+     esac
+    done
 
-    file=$1
-    var=$2
     np=$(ncdump -h $file | grep UNLIM | tr -d '(' | awk '{print $6}')
-    configcase=${file%_1y*}
     year1=$(ncdump -h $file | grep start_date | awk '{ print int($3/10000)}')
     year2=$(( year1 + np - 1 ))
     yaxis=$(get_longname $file $var)
-    xoption="-x $year1 $year2"
-    ncks -FHC -v $var  $file | awk -F= '{if (NF != 0 ) print NR+year1-1 " "$NF*-1}' year1=$year1  | \
+
+    xoption=${xoption:="-x $year1 $year2"}  # if xoption not set take the years begin-end
+    ncks -FHC -v $var  $file | awk -F= '{if (NF != 0 ) print NR+year1-1 " "$NF*scale}' year1=$year1 scale=$scale | \
           graph -Tpng -C -W 0.003 -w 0.8 -r 0.1 -g 3 -h 0.4 $xoption $yoption -S 16 -X 'YEARS' -Y "$yaxis" \
-          --bitmap-size 1024x1024 -L $configcase > ztmp.png
- 
-          convert -crop 1024x585+0+330 ztmp.png  ${configcasenodot}_${var}.jpg
+          --bitmap-size 1024x1024 -L ${CONFIG_CASE} > ztmp.png
+
           convert -crop 1024x585+0+330 ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_${var}.jpg
           convert -crop 1024x585+0+330 ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_${var}.eps
           \rm ztmp.png
             }
 
+# ---
 get_longname() {
     file=$1
     var=$2
-    ncdump -h $file | grep $var | grep 'long_name' | awk '{print $3}' | sed -e 's/_/ /g' | sed -e 's/\"//g'
+    ncdump -h $file | grep -w $var | grep 'long_name' | awk '{print $3}' | sed -e 's/_/ /g' | sed -e 's/\"//g'
                }
 
 here=$(pwd)
@@ -342,9 +320,9 @@ CONFIG_CASEnoDOT=${CONFIGnoDOT}-${CASEnoDOT}
 
 if [ $plot_all ] ; then
    pl_shlat ; pl_bfr ; pl_rnf ; pl_dmpmask ; pl_maskitf ; pl_iceini ; pl_scal ; pl_distcoast ; 
-   pl_maxmoc ${CONFIG_CASE}_1y_MAXMOC.nc maxmoc_Atl_maxmoc
-   pl_trp  ${CONFIG_CASE}_1y_TRANSPORTS.nc vtrp_drake
-   pl_trp  ${CONFIG_CASE}_1y_TRANSPORTS.nc vtrp_berin
+   pl_dmon_ts  ${CONFIG_CASE}_1y_MAXMOC.nc maxmoc_Atl_maxmoc -y 15 23
+   pl_dmon_ts  ${CONFIG_CASE}_1y_TRANSPORTS.nc vtrp_drake    -y 130 160 -s -1
+   pl_dmon_ts  ${CONFIG_CASE}_1y_TRANSPORTS.nc vtrp_berin    -y 0.5 1.  -s -1
 else
   case $plot in 
   (shlat    ) pl_shlat     ;;
@@ -355,9 +333,9 @@ else
   ( maskitf ) pl_maskitf   ;;
   ( iceini  ) pl_iceini    ;;
   ( distcoast) pl_distcoast  ;;
-  ( maxmoc  ) pl_maxmoc ${CONFIG_CASE}_1y_MAXMOC.nc maxmoc_Atl_maxmoc   ;;
-  ( drake   ) pl_trp    ${CONFIG_CASE}_1y_TRANSPORTS.nc vtrp_drake      ;;
-  ( bering  ) pl_trp    ${CONFIG_CASE}_1y_TRANSPORTS.nc vtrp_berin      ;;
+  ( maxmoc  ) pl_dmon_ts ${CONFIG_CASE}_1y_MAXMOC.nc maxmoc_Atl_maxmoc -y 15 23         ;;
+  ( drake   ) pl_dmon_ts ${CONFIG_CASE}_1y_TRANSPORTS.nc vtrp_drake    -y 130 160 -s -1 ;;
+  ( bering  ) pl_dmon_ts ${CONFIG_CASE}_1y_TRANSPORTS.nc vtrp_berin    -y 0.5 1.  -s -1 ;;
 
   ( *   ) echo " This plot \( $plot \) is not yet supported." ;;
   esac
