@@ -44,6 +44,7 @@ lstplot () {
       echo "   maskitf   : plot the ITF mask associated with zdf_tmx"
       echo "   iceini    : plot the ice initial condition (lead frac and thickness)."
       echo "   distcoast : plot the distance to coast as seen in sss restoring file"
+      echo "   maxmoc    : plot the time series of the maximum AMOC"
       echo " ..."
       exit 0
            }
@@ -231,11 +232,29 @@ set +x
              }
 # ---
 pl_scal()    {
-      cat perf.txt | graph -Tpng -g 3 -W 0.005 -C -S 16 0.05 -m 0 -w 0.8 -r 0.12 \
+      cat perf.txt | graph -Tpng -g 3 -W 0.005 -C -S 16 0.05 -m -1 -w 0.8 -r 0.12 \
        -X 'Number of cores' -Y 'Steps/mn' -L "${CONFIG_CASE}"  > ztmp.png
        convert ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_scalability.jpg
        convert ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_scalability.eps
              }
+
+# ---
+pl_maxmoc() {
+    file=$1
+    var=$2
+    np=$(ncdump -h $file | grep UNLIM | tr -d '(' | awk '{print $6}')
+    configcase=${file%_1y*}
+    year1=$(ncdump -h $file | grep start_date | awk '{ print int($3/10000)}')
+    year2=$(( year1 + np - 1 ))
+    ncks -FHC -v $var  $file | awk -F= '{if (NF != 0 ) print NR+year1-1 " "$NF}' year1=$year1  | \
+          graph -Tpng -C -W 0.003 -w 0.8 -r 0.1 -g 3 -h 0.4 -x $year1 $year2 -y 15 23 \
+          -S 16 -X 'YEARS' -Y 'Max AMOC'\
+          --bitmap-size 1024x1024 -L $configcase > ztmp.png
+ 
+          convert -crop 1024x585+0+330 ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_${var}.jpg
+          convert -crop 1024x585+0+330 ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_${var}.eps
+          \rm ztmp.png
+            }
 # ---
 here=$(pwd)
 if [ $(basename $here)  != INPUT_DATA ] ; then
@@ -273,6 +292,7 @@ CONFIG_CASEnoDOT=${CONFIGnoDOT}-${CASEnoDOT}
 
 if [ $plot_all ] ; then
    pl_shlat ; pl_bfr ; pl_rnf ; pl_dmpmask ; pl_maskitf ; pl_iceini ; pl_scal ; pl_distcoast ; 
+   pl_maxmoc ${CONFIG_CASE}_1y_MAXMOC.nc maxmoc_Atl_maxmoc
 else
   case $plot in 
   (shlat    ) pl_shlat     ;;
@@ -283,6 +303,7 @@ else
   ( maskitf ) pl_maskitf   ;;
   ( iceini  ) pl_iceini    ;;
   ( distcoast) pl_distcoast  ;;
+  ( maxmoc  ) pl_maxmoc ${CONFIG_CASE}_1y_MAXMOC.nc maxmoc_Atl_maxmoc   ;;
 
   ( *   ) echo " This plot \( $plot \) is not yet supported." ;;
   esac
