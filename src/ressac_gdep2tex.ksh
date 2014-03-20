@@ -54,6 +54,7 @@ zline=$(echo $first_line | awk '{printf" \\textbf{%s} & \\textbf{%s} & \\textbf{
 
 cat << eof > $gdep_out
 \begin{table}[H]
+\tiny
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|}
 \hline
