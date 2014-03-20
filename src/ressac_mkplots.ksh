@@ -6,7 +6,10 @@
 IDIR_ROOT=/fsnet/data/meom/MODEL_SET
 CHART=chart
 COUPE=coupe
+URL_DRAKKAR=http://www-meom.hmg.inpg.fr/DRAKKAR
+WGET='wget --user=drakkar --password=nemo00'
 
+# ---
 usage() {
       echo " "
       echo "USAGE: $(basename $0)  -p plot_type | -a  [-c config-case]  [-h]  [-l] [-i IDIR]"
@@ -32,8 +35,8 @@ usage() {
       echo " "
       exit $1
         }
-# ---
 
+# ---
 lstplot () {
       echo " Possible argument of -p switch  are :"
       echo "   shlat     : plot the shlat 2D coefficient."
@@ -51,14 +54,12 @@ lstplot () {
       exit 0
            }
 # ---
-
 cgm2jpgeps()  {
     ctrans -res 1024x1024 -d sun $1.cgm > ztmp.sun
     convert -quality 100 ztmp.sun $1.jpg
     convert -quality 100 ztmp.sun $1.eps
            }
 # ---
-
 get_data_file() { 
     nam=../TexFiles/Namelist/$2
     file=$(grep $1 $nam | grep -v '^!' | awk -F\' '{print $2}' ).nc
@@ -66,12 +67,20 @@ get_data_file() {
     echo $file $var
                 }
 
+# ---
 get_includefile() {
     nam=./${CONFIG_CASE}_includefile.ksh
     ztmp=$( grep $1 $nam | grep -v '^#' | awk '{ print $1}' )
     echo ${ztmp#*=}
                   }
 
+# ---
+getfromweb() {
+    WEBROOT=$URL_DRAKKAR/${CONFIG}/${CONFIG}-${CASE}/ ;
+    $WGET $WEBROOT/$1
+             }
+
+# ---
 pl_shlat() {
     echo shlat being plotted
     ztmp="$(get_data_file sn_shlat2d namlbc )"
@@ -81,8 +90,11 @@ pl_shlat() {
     bathy=$(get_includefile BATFILE_METER ) 
     ln -s  $IDIR/$bathy ./$bathy
     ln -s $IDIR/$file ./$file
-    $CHART  -pixel -clrdata $file -clrvar $var -clrmet 1 -p lowwhite.pal -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
+
+    $CHART  -pixel -clrdata $file -clrvar $var -clrmet 1 -p lowwhite.pal \
+            -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
             -cntilt ' ' -o ${CONFIG_CASEnoDOT}_shlat.cgm
+
     cgm2jpgeps ${CONFIG_CASEnoDOT}_shlat ; mv ${CONFIG_CASEnoDOT}_shlat.jpg ../TexFiles/Figures/
                                            mv ${CONFIG_CASEnoDOT}_shlat.eps ../TexFiles/Figures/
     rm ztmp.sun
@@ -107,13 +119,14 @@ pl_distcoast() {
 3000
 4000
 eof
-    $CHART  -pixel -clrdata $file -clrvar $var -clrmark clrmark  -p hotres.pal -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
+    $CHART  -pixel -clrdata $file -clrvar $var -clrmark clrmark  -p hotres.pal \
+            -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
             -cntilt ' ' -o ${CONFIG_CASEnoDOT}_distcoast.cgm -clrscale 0.001 -format PALETTE I4 
+
     cgm2jpgeps ${CONFIG_CASEnoDOT}_distcoast ; mv ${CONFIG_CASEnoDOT}_distcoast.jpg ../TexFiles/Figures/
                                                mv ${CONFIG_CASEnoDOT}_distcoast.eps ../TexFiles/Figures/
     rm ztmp.sun
                }
-
 
 # ---
 pl_maskitf() {
@@ -209,15 +222,21 @@ pl_dmpmask() {
     file=$(get_includefile WDMP )
     bathy=$(get_includefile BATFILE_METER ) 
     ln -s $IDIR/$file ./$file
-    lev=$(ncks -HF -v deptht $file | awk -F= '{if ( $2 > 2000 ) {print $1; nextfile }  }' | sed -e 's/(/ /' -e 's/)/ /' | awk '{print $2}')
-    $CHART -pixel -clrmet 1 -p lowwhite.pal -clrdata $file -clrlev $lev  -clrvar wdmp -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
+    lev=$(ncks -HF -v deptht $file | awk -F= '{if ( $2 > 2000 ) {print $1; nextfile }  }' \
+         | sed -e 's/(/ /' -e 's/)/ /' | awk '{print $2}')
+    $CHART -pixel -clrmet 1 -p lowwhite.pal -clrdata $file -clrlev $lev  -clrvar wdmp -cntdata $bathy \
+         -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
          -title @CLR_DEPTH@m -o  ${CONFIG_CASEnoDOT}_dmpmask2000.cgm 
+
     cgm2jpgeps ${CONFIG_CASEnoDOT}_dmpmask2000 ; mv ${CONFIG_CASEnoDOT}_dmpmask2000.jpg ../TexFiles/Figures/
                                                  mv ${CONFIG_CASEnoDOT}_dmpmask2000.eps ../TexFiles/Figures/
     echo damping mask at 3000 m being plotted
-    lev=$(ncks -HF -v deptht $file | awk -F= '{if ( $2 > 3000 ) {print $1; nextfile }  }' | sed -e 's/(/ /' -e 's/)/ /' | awk '{print $2}')
-    $CHART -pixel -clrmet 1 -p lowwhite.pal -clrdata $file -clrlev $lev  -clrvar wdmp -cntdata $bathy -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
+    lev=$(ncks -HF -v deptht $file | awk -F= '{if ( $2 > 3000 ) {print $1; nextfile }  }' \
+          | sed -e 's/(/ /' -e 's/)/ /' | awk '{print $2}')
+    $CHART -pixel -clrmet 1 -p lowwhite.pal -clrdata $file -clrlev $lev  -clrvar wdmp -cntdata $bathy \
+         -cntvar Bathymetry -cntmin 1 -cntmax 10 -cntint 10 \
          -title @CLR_DEPTH@m -o  ${CONFIG_CASEnoDOT}_dmpmask3000.cgm 
+
     cgm2jpgeps ${CONFIG_CASEnoDOT}_dmpmask3000 ; mv ${CONFIG_CASEnoDOT}_dmpmask3000.jpg ../TexFiles/Figures/
                                                  mv ${CONFIG_CASEnoDOT}_dmpmask3000.eps ../TexFiles/Figures/
 
@@ -226,18 +245,24 @@ pl_dmpmask() {
 set -x
     $COUPE -pts -30 -30 -75 10   -clrdata $file -clrvar wdmp -pmax -6000 -clrmet 1 -zstep 1000 -zgrid -spval 0 -ystep 5 -ygrid \
          -o ${CONFIG_CASEnoDOT}_dmpmask30W.cgm 
-
 set +x
+
     cgm2jpgeps ${CONFIG_CASEnoDOT}_dmpmask30W ; mv ${CONFIG_CASEnoDOT}_dmpmask30W.jpg ../TexFiles/Figures/
                                                 mv ${CONFIG_CASEnoDOT}_dmpmask30W.eps ../TexFiles/Figures/
-
              }
 # ---
 pl_scal()    {
-      cat perf.txt | graph -Tpng -g 3 -W 0.005 -C -S 16 0.05 -m -1 -w 0.8 -r 0.12 \
-       -X 'Number of cores' -Y 'Steps/mn' -L "${CONFIG_CASE}"  > ztmp.png
-       convert ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_scalability.jpg
-       convert ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_scalability.eps
+      # perf.tex is an ascii file with x=number of cores, y=step/mn obtained after scalability experiment
+      if [ ! -f perf.text ] ; then
+         echo '  >>>>>>>>> : ' perf.text missing. 
+         ln -sf ../TexFiles/Figures/${CONFIG_CASEnoDOT}_scalability.jpg  ../TexFiles/Figures/work.jpg
+         ln -sf ../TexFiles/Figures/${CONFIG_CASEnoDOT}_scalability.eps  ../TexFiles/Figures/work.eps
+      else
+        cat perf.txt | graph -Tpng -g 3 -W 0.005 -C -S 16 0.05 -m -1 -w 0.8 -r 0.12 \
+           -X 'Number of cores' -Y 'Steps/mn' -L "${CONFIG_CASE}"  > ztmp.png
+           convert ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_scalability.jpg
+           convert ztmp.png  ../TexFiles/Figures/${CONFIG_CASEnoDOT}_scalability.eps
+      fi
              }
 
 # ---
@@ -284,6 +309,19 @@ get_longname() {
     ncdump -h $file | grep -w $var | grep 'long_name' | awk '{print $3}' | sed -e 's/_/ /g' | sed -e 's/\"//g'
                }
 
+# ---
+# if input file is not present try to find it, locally or on the web site
+checkfile() { 
+     if [ ! -f $1 ] ; then
+      # look in the local MONITIR DIR:
+      if [ -f $CDIR/${CONFIG}/${CONFIG_CASE}-MONITOR/$1 ] ; then  
+        cp $CDIR/${CONFIG}/${CONFIG_CASE}-MONITOR/$1  ./
+      else
+        getfromweb DATA/$1
+      fi
+     fi 
+            }
+############################# M A I N ###################################################################
 here=$(pwd)
 if [ $(basename $here)  != INPUT_DATA ] ; then
    echo "  === E R R O R : Should be used in INPUT_DATA directory "
@@ -333,9 +371,12 @@ else
   ( maskitf ) pl_maskitf   ;;
   ( iceini  ) pl_iceini    ;;
   ( distcoast) pl_distcoast  ;;
-  ( maxmoc  ) pl_dmon_ts ${CONFIG_CASE}_1y_MAXMOC.nc maxmoc_Atl_maxmoc -y 15 23         ;;
-  ( drake   ) pl_dmon_ts ${CONFIG_CASE}_1y_TRANSPORTS.nc vtrp_drake    -y 130 160 -s -1 ;;
-  ( bering  ) pl_dmon_ts ${CONFIG_CASE}_1y_TRANSPORTS.nc vtrp_berin    -y 0.5 1.  -s -1 ;;
+  ( maxmoc  )  infile=${CONFIG_CASE}_1y_MAXMOC.nc     ; checkfile $infile 
+              pl_dmon_ts $infile maxmoc_Atl_maxmoc -y 15 23         ;;
+  ( drake   ) infile=${CONFIG_CASE}_1y_TRANSPORTS.nc  ; checkfile $infile 
+              pl_dmon_ts $infile vtrp_drake        -y 130 160 -s -1 ;;
+  ( bering  )  infile=${CONFIG_CASE}_1y_TRANSPORTS.nc ; checkfile $infile
+              pl_dmon_ts $infile vtrp_berin        -y 0.5 1.  -s -1 ;;
 
   ( *   ) echo " This plot \( $plot \) is not yet supported." ;;
   esac
