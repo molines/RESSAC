@@ -1,4 +1,4 @@
-# RESSAC is REport of Simulation Semi-Automatically Completed
+# RESSAC:  REport of Simulation Semi-Automatically Completed
 
   This tool was borm from the evidence that most of the numerical experiments reports written for DRAKKAR, are built with an almost similar canvas. Therefore, a clever script  can easily produce a report template (in latex) from CPP keys used at compile time and namelist used at run time.
 
