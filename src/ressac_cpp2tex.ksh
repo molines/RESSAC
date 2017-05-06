@@ -128,6 +128,7 @@ key_gyre                  Define GYRE configuration
 key_helsinki              Use HELSINKI scheme for s-coordinates
 key_iceshelf              Use ICESHELF paramaterization
 key_iomput                Use XIOS for model output
+key_xios2                 Use XIOS2 version of XIOS
 key_kppcustom             Use KPP customization (??)
 key_kpplktb               Use KPP ??
 key_ldfslp                Compute isopycnal SLoPes for Lateral DiFfusion
