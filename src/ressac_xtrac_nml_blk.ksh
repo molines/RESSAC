@@ -57,8 +57,13 @@ blk_list()          {
 # ====================================================================================================================
    NAM_DIR=../TexFiles/Namelist
    OCE_BLK=" namrun namdom nammpp namsol namzdf namzdf_tke namtra_adv namtra_ldf namtra_dmp namtra_qsr namzdf_tmx namdyn_adv \
-             namdyn_vor namdyn_ldf nambbl namsbc namsbc_core namsbc_rnf namsbc_ssr namlbc nambfr namtra_dmp namtsd "
-   ICE_BLK=" namicerun namiceini namicedyn namicethd "
+             namdyn_vor namdyn_ldf nambbl namsbc namsbc_core namsbc_rnf namsbc_ssr namlbc nambfr namtra_dmp namtsd \
+             nam_asmin nam_dia25h nam_diaharm nam_diatmb nam_tide nam_vvl nambbc nambdy nambdy_dta nambdy_index nambdy_tide \
+             namberg namc1d namc1d_dyndmp namc1d_uvd namcfg namcrs namctl namdct namdiu namdyn_hpg namdyn_spg nameos namflo \
+             namhsb namlbc namnc4 namobs namptr namsbc_alb namsbc_ana namsbc_apr namsbc_cice namsbc_clio namsbc_cpl namsbc_flx  \
+             namsbc_iif namsbc_iscpl namsbc_isf namsbc_mfs namsbc_wave namsto namtra_adv_mle namtra_ldfeiv namtrd namtrd_mxl \
+             namwad namzdf_ddm namzdf_gls namzdf_ric namzdf_tmx_new namzgr namzgr_sco" 
+   ICE_BLK=" namicerun namiceini namicedyn namicethd namicehdf namicehsb namiceitd namiceitdme namicesal"
    nam_nm="namelist"
 
    single=
